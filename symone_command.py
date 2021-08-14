@@ -77,6 +77,7 @@ The party needs {xp_left} to reach next level.""",
 def add_xp(*args):
     user = args[0]
     if user != GAME_MASTER:
+        print(f"{user} != {GAME_MASTER}")
         return {
             "response_type": MESSAGE_RESPONSE_CHANNEL,
             "text": f"Nice try...",
