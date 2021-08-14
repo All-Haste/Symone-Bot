@@ -10,9 +10,8 @@ from slack_sdk.signature import SignatureVerifier
 GAME_MASTER = os.getenv('GAME_MASTER', "FOO")
 
 
-class MessageResponseTypes(Enum):
-    CHANNEL = "in_channel"
-    EPHEMERAL = "ephemeral"
+MESSAGE_RESPONSE_CHANNEL = "in_channel"
+MESSAGE_RESPONSE_EPHEMERAL = "ephemeral"
 
 
 def verify_signature(request: Request):
@@ -26,10 +25,10 @@ def verify_signature(request: Request):
 
 def symone_message(slack_data: dict) -> Dict[str, str]:
     input_text = slack_data.get("text")
-    slack_response_type = MessageResponseTypes.CHANNEL
+    slack_response_type = MESSAGE_RESPONSE_CHANNEL
 
     if not input_text:
-        slack_response_type = MessageResponseTypes.EPHEMERAL
+        slack_response_type = MESSAGE_RESPONSE_EPHEMERAL
         text = "Hello, I am Symone Bot. I keep track of party gold, XP, and loot."
     else:
         text = f"Echoing text body: {input_text.replace('+', ' ')}"
