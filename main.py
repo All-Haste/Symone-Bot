@@ -4,20 +4,11 @@ from typing import Dict, Callable
 from flask import jsonify, Request, Response
 from slack_sdk.signature import SignatureVerifier
 
-
-# TODO bot functions:
-# GM add xp
-# GM add gold
-# Any add loot
-# Did they level?
-# Set next level (plus set xp... might avoid having to build an xp table..)
+from symone_command import *
 
 # This is the ID of the GM user in slack
 # TODO: create a proper user permissions system.
 GAME_MASTER = os.getenv('GAME_MASTER', "FOO")
-
-MESSAGE_RESPONSE_CHANNEL = "in_channel"
-MESSAGE_RESPONSE_EPHEMERAL = "ephemeral"
 
 
 def verify_signature(request: Request):
@@ -44,46 +35,8 @@ def symone_message(slack_data: dict) -> Dict[str, str]:
 
 
 def response_switch(query: str) -> Callable:
-    switch = {
-        "help": help_message,
-        "xp stats": current_xp,
-    }
+    switch = {command.query: command.callable for command in commands}
     return switch.get(query, default_response)
-
-
-def default_response() -> dict:
-    return {
-        "response_type": MESSAGE_RESPONSE_EPHEMERAL,
-        "text": "I am Symone Bot. I keep track of party gold, XP, and loot. Type `/symone help` to see what I can do."
-    }
-
-
-def help_message() -> dict:
-    # TODO auto generate
-    # perhaps have each callable self-report their help message
-    # could be done by implementing a responseMessage class with
-    # help info method
-    return {
-        "response_type": MESSAGE_RESPONSE_EPHEMERAL,
-        "text": """`xp stats`: returns party xp stats.
-`current gold`: returns current party gold.
-    """,
-    }
-
-
-def current_xp() -> dict:
-    # TODO fetch these from persistent storage
-    party_xp = 100000
-    party_size = 5
-    xp_for_next_level = 60000  # TODO XP dict/table
-    xp_left = xp_for_next_level * party_size - party_xp
-
-    return {
-        "response_type": MESSAGE_RESPONSE_CHANNEL,
-        "text": f"""The party has amassed {party_xp} XP.
-Next level is achieved at {xp_for_next_level} XP per character for a total of {xp_for_next_level * party_size}.
-The party needs {xp_left} to reach next level.""",
-    }
 
 
 def parse_slack_data(request_body: bytes) -> Dict[str, str]:
