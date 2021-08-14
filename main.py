@@ -1,6 +1,5 @@
 import os
-from typing import Dict
-from enum import Enum
+from typing import Dict, Callable
 
 from flask import jsonify, Request, Response
 from slack_sdk.signature import SignatureVerifier
@@ -8,7 +7,6 @@ from slack_sdk.signature import SignatureVerifier
 # This is the ID of the GM user in slack
 # TODO: create a proper user permissions system.
 GAME_MASTER = os.getenv('GAME_MASTER', "FOO")
-
 
 MESSAGE_RESPONSE_CHANNEL = "in_channel"
 MESSAGE_RESPONSE_EPHEMERAL = "ephemeral"
@@ -25,19 +23,39 @@ def verify_signature(request: Request):
 
 def symone_message(slack_data: dict) -> Dict[str, str]:
     input_text = slack_data.get("text")
-    slack_response_type = MESSAGE_RESPONSE_CHANNEL
 
     if not input_text:
-        slack_response_type = MESSAGE_RESPONSE_EPHEMERAL
-        text = "Hello, I am Symone Bot. I keep track of party gold, XP, and loot."
+        query = ""
     else:
-        text = f"Echoing text body: {input_text.replace('+', ' ')}"
-    message = {
-        "response_type": slack_response_type,
-        "text": text,
-    }
+        query = input_text.lower().replace("+", " ")
+
+    response_callable = response_switch(query)
+    message = response_callable()
 
     return message
+
+
+def response_switch(query: str) -> Callable:
+    switch = {
+        "help": help_message,
+    }
+    return switch.get(query, default_response)
+
+
+def default_response() -> dict:
+    return {
+        "response_type": MESSAGE_RESPONSE_EPHEMERAL,
+        "text": "I am Symone Bot. I keep track of party gold, XP, and loot. Type `/symone help` to see what I can do."
+    }
+
+
+def help_message() -> dict:
+    return {
+        "response_type": MESSAGE_RESPONSE_EPHEMERAL,
+        "text": """`current xp`: returns current party xp
+    `current gold`: returns current party gold
+    """,
+    }
 
 
 def parse_slack_data(request_body: bytes) -> Dict[str, str]:
