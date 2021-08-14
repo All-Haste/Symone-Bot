@@ -89,6 +89,7 @@ def add_xp(*args):
     party_xp = result["xp"]
     new_xp = party_xp + xp_to_add
     result["xp"] = new_xp
+    datastore_client.put(result)
 
     print(f"Updated party xp to {new_xp}")
 
