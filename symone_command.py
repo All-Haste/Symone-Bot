@@ -34,10 +34,7 @@ def default_response() -> dict:
 
 
 def help_message() -> dict:
-    # TODO auto generate
-    # perhaps have each callable self-report their help message
-    # could be done by implementing a responseMessage class with
-    # help info method
+    """Auto generates help message by gathering the help info from each SymoneCommand."""
     text = """"""
     for command in commands:
         if not command.callable == default_response:
