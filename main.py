@@ -4,6 +4,14 @@ from typing import Dict, Callable
 from flask import jsonify, Request, Response
 from slack_sdk.signature import SignatureVerifier
 
+
+# TODO bot functions:
+# GM add xp
+# GM add gold
+# Any add loot
+# Did they level?
+# Set next level (plus set xp... might avoid having to build an xp table..)
+
 # This is the ID of the GM user in slack
 # TODO: create a proper user permissions system.
 GAME_MASTER = os.getenv('GAME_MASTER', "FOO")
@@ -73,7 +81,7 @@ def current_xp() -> dict:
     return {
         "response_type": MESSAGE_RESPONSE_CHANNEL,
         "text": f"""The party has amassed {party_xp} XP.
-Next level is achieved at {xp_for_next_level} XP.
+Next level is achieved at {xp_for_next_level} XP per character for a total of {xp_for_next_level * party_size}.
 The party needs {xp_left} to reach next level.""",
     }
 
