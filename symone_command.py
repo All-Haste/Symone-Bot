@@ -6,6 +6,8 @@ PROJECT_ID = os.getenv("PROJECT_ID")
 MESSAGE_RESPONSE_CHANNEL = "in_channel"
 MESSAGE_RESPONSE_EPHEMERAL = "ephemeral"
 
+DATA_KEY_CAMPAIGN = "campaign"
+
 # TODO bot functions:
 # GM add xp
 # GM add gold
@@ -51,10 +53,12 @@ def help_message() -> dict:
 
 
 def current_xp() -> dict:
+    query = datastore_client.query(kind=DATA_KEY_CAMPAIGN)
+    result = query.add_filter('name', '=', 'rotrl').fetch(1)[0]
     # TODO fetch these from persistent storage
-    party_xp = 100000
-    party_size = 5
-    xp_for_next_level = 60000  # TODO XP dict/table
+    party_xp = result["xp"]
+    party_size = result["party_size"]
+    xp_for_next_level = result["xp_target"]
     xp_left = xp_for_next_level * party_size - party_xp
 
     return {
