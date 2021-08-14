@@ -1,8 +1,10 @@
+import os
 from typing import Dict, Callable, List
+from google.cloud import datastore
 
+PROJECT_ID = os.getenv("PROJECT_ID")
 MESSAGE_RESPONSE_CHANNEL = "in_channel"
 MESSAGE_RESPONSE_EPHEMERAL = "ephemeral"
-
 
 # TODO bot functions:
 # GM add xp
@@ -10,6 +12,8 @@ MESSAGE_RESPONSE_EPHEMERAL = "ephemeral"
 # Any add loot
 # Did they level?
 # Set next level (plus set xp... might avoid having to build an xp table..)
+datastore_client = datastore.Client(PROJECT_ID)
+
 
 class SymoneCommand:
     def __init__(self, query: str, help_info: str, function: Callable):
@@ -20,6 +24,7 @@ class SymoneCommand:
         self.callable = function
 
     def get_response(self) -> Dict[str, str]:
+        print(f"{self.query} called, executing.")
         return self.callable()
 
     def help(self) -> str:

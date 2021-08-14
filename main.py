@@ -1,5 +1,4 @@
 import os
-from typing import Dict, Callable
 
 from flask import jsonify, Request, Response
 from slack_sdk.signature import SignatureVerifier
@@ -8,7 +7,7 @@ from symone_command import *
 
 # This is the ID of the GM user in slack
 # TODO: create a proper user permissions system.
-GAME_MASTER = os.getenv('GAME_MASTER', "FOO")
+GAME_MASTER = os.getenv('GAME_MASTER')
 
 
 def verify_signature(request: Request):
@@ -35,7 +34,7 @@ def symone_message(slack_data: dict) -> Dict[str, str]:
 
 
 def response_switch(query: str) -> Callable:
-    switch = {command.query: command.callable for command in commands}
+    switch = {command.query: command.get_response for command in commands}
     return switch.get(query, default_response)
 
 
