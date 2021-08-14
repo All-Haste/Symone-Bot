@@ -58,8 +58,8 @@ def help_message() -> dict:
 
 def current_xp() -> dict:
     datastore_client = create_client(PROJECT_ID)
-    query = datastore_client.query(kind=DATA_KEY_CAMPAIGN)
-    result = next(query.add_filter('name', '=', 'rotrl').fetch())
+    query = datastore_client.query(kind="campaign").fetch()
+    result = query.next()
     # TODO fetch these from persistent storage
     party_xp = result["xp"]
     party_size = result["party_size"]
