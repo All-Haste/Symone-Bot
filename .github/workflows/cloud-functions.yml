@@ -1,0 +1,11 @@
+- name: Cloud Functions Deploy
+  uses: google-github-actions/deploy-cloud-functions@v0.1.2
+
+- uses: actions/checkout@v2
+- id: Deploy
+  uses: google-github-actions/deploy-cloud-functions@main
+  with:
+    credentials: ${{ secrets.GCP_SA_KEY }}
+    name: symone_bot
+    runtime: python39
+    env_vars: SLACK_SECRET=${{ secrets.SLACK_SECRET }},GAME_MASTER=${{ secrets.GAME_MASTER }}
