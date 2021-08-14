@@ -38,6 +38,7 @@ def symone_message(slack_data: dict) -> Dict[str, str]:
 def response_switch(query: str) -> Callable:
     switch = {
         "help": help_message,
+        "xp stats": current_xp,
     }
     return switch.get(query, default_response)
 
@@ -50,11 +51,30 @@ def default_response() -> dict:
 
 
 def help_message() -> dict:
+    # TODO auto generate
+    # perhaps have each callable self-report their help message
+    # could be done by implementing a responseMessage class with
+    # help info method
     return {
         "response_type": MESSAGE_RESPONSE_EPHEMERAL,
-        "text": """`current xp`: returns current party xp
-    `current gold`: returns current party gold
+        "text": """`xp stats`: returns party xp stats.
+    `current gold`: returns current party gold.
     """,
+    }
+
+
+def current_xp() -> dict:
+    # TODO fetch these from persistent storage
+    party_xp = 100000
+    party_size = 5
+    xp_for_next_level = 60000  # TODO XP dict/table
+    xp_left = xp_for_next_level * party_size - party_xp
+
+    return {
+        "response_type": MESSAGE_RESPONSE_CHANNEL,
+        "text": f"""The party has amassed {party_xp} XP.
+Next level is achieved at {xp_for_next_level} XP.
+The party needs {xp_left} to reach next level.""",
     }
 
 
