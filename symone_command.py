@@ -40,7 +40,7 @@ def help_message() -> dict:
     # help info method
     text = """"""
     for command in commands:
-        text += f"{command.help_info}\n"
+        text += f"{command.help()}\n"
     return {
         "response_type": MESSAGE_RESPONSE_EPHEMERAL,
         "text": text,
