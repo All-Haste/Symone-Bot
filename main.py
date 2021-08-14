@@ -1,5 +1,6 @@
 import os
 from typing import Dict
+from enum import Enum
 
 from flask import jsonify, Request, Response
 from slack_sdk.signature import SignatureVerifier
@@ -7,6 +8,11 @@ from slack_sdk.signature import SignatureVerifier
 # This is the ID of the GM user in slack
 # TODO: create a proper user permissions system.
 GAME_MASTER = os.getenv('GAME_MASTER', "FOO")
+
+
+class MessageResponseTypes(Enum):
+    CHANNEL = "in_channel"
+    EPHEMERAL = "ephemeral"
 
 
 def verify_signature(request: Request):
@@ -19,9 +25,17 @@ def verify_signature(request: Request):
 
 
 def symone_message(slack_data: dict) -> Dict[str, str]:
+    input_text = slack_data.get("text")
+    slack_response_type = MessageResponseTypes.CHANNEL
+
+    if not input_text:
+        slack_response_type = MessageResponseTypes.EPHEMERAL
+        text = "Hello, I am Symone Bot. I keep track of party gold, XP, and loot."
+    else:
+        text = f"Echoing text body: {input_text.replace('+', ' ')}"
     message = {
-        "response_type": "in_channel",
-        "text": f"Echoing text body: {slack_data['text']}",
+        "response_type": slack_response_type,
+        "text": text,
     }
 
     return message
