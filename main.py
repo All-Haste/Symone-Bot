@@ -58,7 +58,7 @@ def help_message() -> dict:
     return {
         "response_type": MESSAGE_RESPONSE_EPHEMERAL,
         "text": """`xp stats`: returns party xp stats.
-    `current gold`: returns current party gold.
+`current gold`: returns current party gold.
     """,
     }
 
