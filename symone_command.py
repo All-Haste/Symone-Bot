@@ -8,13 +8,17 @@ MESSAGE_RESPONSE_EPHEMERAL = "ephemeral"
 
 DATA_KEY_CAMPAIGN = "campaign"
 
+
 # TODO bot functions:
 # GM add xp
 # GM add gold
 # Any add loot
 # Did they level?
 # Set next level (plus set xp... might avoid having to build an xp table..)
-datastore_client = datastore.Client(PROJECT_ID)
+
+
+def create_client(project_id: str):
+    return datastore.Client(project_id)
 
 
 class SymoneCommand:
@@ -53,6 +57,7 @@ def help_message() -> dict:
 
 
 def current_xp() -> dict:
+    datastore_client = create_client(PROJECT_ID)
     query = datastore_client.query(kind=DATA_KEY_CAMPAIGN)
     result = query.add_filter('name', '=', 'rotrl').fetch(1)[0]
     # TODO fetch these from persistent storage

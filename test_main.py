@@ -1,7 +1,7 @@
 import pytest
 
-from main import parse_slack_data, help_message, default_response, response_switch, MESSAGE_RESPONSE_EPHEMERAL, \
-    symone_message
+from main import parse_slack_data, default_response, response_switch, symone_message
+from symone_command import help_message, MESSAGE_RESPONSE_EPHEMERAL
 
 
 def test_parse_slack_data():
@@ -11,15 +11,6 @@ def test_parse_slack_data():
     assert actual["foo"] == "bar"
     assert actual["cat"] == "feline"
     assert actual["123"] == "easyasabc"
-
-
-@pytest.mark.parametrize("query,response_callable", [
-    ("jfkdla;jkfd", default_response),
-    ("help", help_message),
-])
-def test_response_switch(query, response_callable):
-    actual = response_switch(query)
-    assert actual == response_callable
 
 
 def test_symone_message():
