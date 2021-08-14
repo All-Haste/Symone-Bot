@@ -1,12 +1,14 @@
 import os
+from typing import Dict, Callable
 
 from flask import jsonify, Request, Response
 from slack_sdk.signature import SignatureVerifier
 
-from symone_command import *
 
 # This is the ID of the GM user in slack
 # TODO: create a proper user permissions system.
+from symone_command import default_response, commands
+
 GAME_MASTER = os.getenv('GAME_MASTER')
 
 
