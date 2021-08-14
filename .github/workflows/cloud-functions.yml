@@ -1,6 +1,9 @@
 name: Cloud Function Deploy
 
-on: [ push ]
+on:
+  push:
+    branches:
+      - main
 
 jobs:
   build:
@@ -8,9 +11,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Cloud Functions Deploy
-        uses: google-github-actions/deploy-cloud-functions@v0.1.2
-
       - uses: actions/checkout@v2
       - id: Deploy
         uses: google-github-actions/deploy-cloud-functions@main
