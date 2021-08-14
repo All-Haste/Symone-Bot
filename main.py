@@ -36,6 +36,7 @@ def symone_message(slack_data: dict) -> Dict[str, str]:
         except ValueError:
             arg = None
 
+    print(f"query: {query}")
     response_callable = response_switch(query)
     message = response_callable([user_id, arg])
 
