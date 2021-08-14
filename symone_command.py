@@ -75,14 +75,14 @@ The party needs {xp_left} to reach next level.""",
 
 
 def add_xp(*args):
-    user = args[0]
+    user = args[0][0]
     if user != GAME_MASTER:
         print(f"{user} != {GAME_MASTER}")
         return {
             "response_type": MESSAGE_RESPONSE_CHANNEL,
             "text": f"Nice try...",
         }
-    xp_to_add = args[1]
+    xp_to_add = args[0][1]
     datastore_client = create_client(PROJECT_ID)
     query = datastore_client.query(kind="campaign").fetch()
     result = query.next()
