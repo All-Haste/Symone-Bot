@@ -40,7 +40,8 @@ def help_message() -> dict:
     # help info method
     text = """"""
     for command in commands:
-        text += f"{command.help()}\n"
+        if not command.callable == default_response:
+            text += f"{command.help()}\n"
     return {
         "response_type": MESSAGE_RESPONSE_EPHEMERAL,
         "text": text,
