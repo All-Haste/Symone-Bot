@@ -4,12 +4,9 @@ from typing import Dict, Callable
 from flask import jsonify, Request, Response
 from slack_sdk.signature import SignatureVerifier
 
-
 # This is the ID of the GM user in slack
 # TODO: create a proper user permissions system.
 from symone_command import default_response, commands
-
-GAME_MASTER = os.getenv('GAME_MASTER')
 
 
 def verify_signature(request: Request):
@@ -22,15 +19,25 @@ def verify_signature(request: Request):
 
 
 def symone_message(slack_data: dict) -> Dict[str, str]:
+    print(slack_data)
     input_text = slack_data.get("text")
-
+    user_id = slack_data.get("user_id")
+    arg = None
     if not input_text:
         query = ""
     else:
         query = input_text.lower().replace("+", " ")
 
+        # test if final arg is an int
+        arg = query[-1]
+        try:
+            arg = int(arg)
+            query = " ".join(query[:-1])
+        except ValueError:
+            arg = None
+
     response_callable = response_switch(query)
-    message = response_callable()
+    message = response_callable([user_id, arg])
 
     return message
 
