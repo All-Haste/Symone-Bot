@@ -26,7 +26,7 @@ def symone_message(slack_data: dict) -> Dict[str, str]:
     if not input_text:
         query = ""
     else:
-        query = input_text.lower().replace("+", " ")
+        query = input_text.lower().split("+")
 
         # test if final arg is an int
         arg = query[-1]
@@ -35,6 +35,7 @@ def symone_message(slack_data: dict) -> Dict[str, str]:
             query = " ".join(query[:-1])
         except ValueError:
             arg = None
+            query = " ".join(query)
 
     print(f"query: {query}")
     response_callable = response_switch(query)
