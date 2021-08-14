@@ -82,7 +82,7 @@ def add_xp(*args):
             "response_type": MESSAGE_RESPONSE_CHANNEL,
             "text": f"Nice try...",
         }
-    xp_to_add = args[0]
+    xp_to_add = args[1]
     datastore_client = create_client(PROJECT_ID)
     query = datastore_client.query(kind="campaign").fetch()
     result = query.next()

@@ -39,7 +39,7 @@ def symone_message(slack_data: dict) -> Dict[str, str]:
 
     print(f"query: {query}")
     response_callable = response_switch(query)
-    message = response_callable([user_id, arg])
+    message = response_callable((user_id, arg))
 
     return message
 
