@@ -30,9 +30,9 @@ class SymoneCommand:
             raise AttributeError(f"'function' must be type Callable.")
         self.callable = function
 
-    def get_response(self, **kwargs) -> Dict[str, str]:
+    def get_response(self, *args) -> Dict[str, str]:
         print(f"{self.query} called, executing.")
-        return self.callable(**kwargs)
+        return self.callable(*args)
 
     def help(self) -> str:
         return f"`{self.query}`: {self.help_info}."
