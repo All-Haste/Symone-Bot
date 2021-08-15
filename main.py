@@ -6,8 +6,7 @@ from typing import Dict, Tuple, Union
 from flask import jsonify, Request, Response
 from slack_sdk.signature import SignatureVerifier
 
-# This is the ID of the GM user in slack
-# TODO: create a proper user permissions system.
+
 from symone_bot.aspects import aspect_list
 from symone_bot.commands import command_list
 from symone_bot.metadata import QueryMetaData
