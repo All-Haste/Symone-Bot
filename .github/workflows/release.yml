@@ -1,7 +1,7 @@
 name: Release
 on:
   workflow_run:
-    workflows: ["Main pipeline"]
+    workflows: ["test"]
     branches: [main]
     types: 
       - completed
