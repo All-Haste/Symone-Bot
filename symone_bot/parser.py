@@ -71,16 +71,19 @@ class QueryEvaluator:
 
     def _get_response(self) -> SymoneResponse:
         """Scans through the token set and attempts to return a Command"""
-        self._expect("CMD")
-        cmd_token = self.tok
         aspect = None
         value = None
-        command = self._lookup_command(cmd_token)
-        if self._accept("ASPECT"):
-            aspect_token = self.tok
-            aspect = self._lookup_aspect(aspect_token)
-            if self._accept("NUM"):
-                value = int(self.tok[1])
+        if self.nexttok is None:
+            command = self._lookup_command(Token("CMD", "default"))
+        else:
+            self._expect("CMD")
+            cmd_token = self.tok
+            command = self._lookup_command(cmd_token)
+            if self._accept("ASPECT"):
+                aspect_token = self.tok
+                aspect = self._lookup_aspect(aspect_token)
+                if self._accept("NUM"):
+                    value = int(self.tok[1])
 
         return SymoneResponse(command, aspect=aspect, value=value)
 

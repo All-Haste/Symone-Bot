@@ -22,15 +22,15 @@ def test_init_rejects_incorrect_aspect_value(aspect_type, value):
 
 
 def test_get_happy_path():
-    response = SymoneResponse(Command("foo", "", lambda: Response()), value="test")
+    response = SymoneResponse(Command("foo", "", lambda x: 1 + 1), value=1)
 
     result = response.get()
 
-    assert result.status_code == Response().status_code
+    assert result == 2
 
 
 def test_get_with_value():
-    def sub_func(aspect, value):
+    def sub_func(metadata, aspect, value):
         return Response(value, 200)
 
     response = SymoneResponse(
@@ -46,7 +46,7 @@ def test_get_with_value():
 
 
 def test_get_with_only_aspect():
-    def sub_func(aspect):
+    def sub_func(metadata, aspect):
         return Response()
 
     response = SymoneResponse(Command("foo", "", sub_func), aspect=Aspect("bar", ""))

@@ -43,15 +43,17 @@ class Command:
         return f"`{self.name}`: {self.help_info}."
 
 
-def default_response() -> dict:
+def default_response(metadata: QueryMetaData) -> dict:
+    logging.info(f"Default response triggered by user: {metadata.user_id}")
     return {
         "response_type": MESSAGE_RESPONSE_EPHEMERAL,
         "text": "I am Symone Bot. I keep track of party gold, XP, and loot. Type `/symone help` to see what I can do.",
     }
 
 
-def help_message() -> dict:
+def help_message(metadata: QueryMetaData) -> dict:
     """Auto generates help message by gathering the help info from each SymoneCommand."""
+    logging.info(f"Default response triggered by user: {metadata.user_id}")
     text = """"""
     for command in command_list:
         if not command.callable == default_response:
@@ -62,21 +64,21 @@ def help_message() -> dict:
     }
 
 
-def current_xp() -> dict:
-    datastore_client = create_client(PROJECT_ID)
-    query = datastore_client.query(kind="campaign").fetch()
-    result = query.next()
-    party_xp = result["xp"]
-    party_size = result["party_size"]
-    xp_for_next_level = result["xp_target"]
-    xp_left = xp_for_next_level * party_size - party_xp
-
-    return {
-        "response_type": MESSAGE_RESPONSE_CHANNEL,
-        "text": f"""The party has amassed {party_xp} XP.
-Next level is achieved at {xp_for_next_level} XP per character for a total of {xp_for_next_level * party_size}.
-The party needs {xp_left} to reach next level.""",
-    }
+# def current_xp() -> dict:
+#     datastore_client = create_client(PROJECT_ID)
+#     query = datastore_client.query(kind="campaign").fetch()
+#     result = query.next()
+#     party_xp = result["xp"]
+#     party_size = result["party_size"]
+#     xp_for_next_level = result["xp_target"]
+#     xp_left = xp_for_next_level * party_size - party_xp
+#
+#     return {
+#         "response_type": MESSAGE_RESPONSE_CHANNEL,
+#         "text": f"""The party has amassed {party_xp} XP.
+# Next level is achieved at {xp_for_next_level} XP per character for a total of {xp_for_next_level * party_size}.
+# The party needs {xp_left} to reach next level.""",
+#     }
 
 
 def add(metadata: QueryMetaData, aspect: Aspect, value: Any) -> Dict[str, str]:
@@ -110,6 +112,5 @@ def add(metadata: QueryMetaData, aspect: Aspect, value: Any) -> Dict[str, str]:
 command_list: List[Command] = [
     Command("default", "", default_response),
     Command("help", "retrieves help info", help_message),
-    Command("xp stats", "gets xp info for the party", current_xp),
     Command("add", "adds a given value to a given aspect.", add),
 ]

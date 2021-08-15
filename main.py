@@ -38,7 +38,7 @@ def symone_message(slack_data: dict) -> Dict[str, str]:
     if not input_text:
         query = ""
     else:
-        query = input_text.lower().split("+")
+        query = input_text.lower().replace("+", " ")
 
     evaluator = QueryEvaluator(command_list, aspect_list)
     response = evaluator.parse(query)

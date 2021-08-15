@@ -12,7 +12,7 @@ def test_parse_slack_data():
 
 
 def test_symone_message():
-    test_input = {"text": "foo+bar+baz"}
+    test_input = {"text": "foo+bar+baz", "user_id": "foo"}
 
     expected = {
         "response_type": MESSAGE_RESPONSE_EPHEMERAL,
