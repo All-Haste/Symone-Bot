@@ -8,7 +8,7 @@ from slack_sdk.signature import SignatureVerifier
 
 # This is the ID of the GM user in slack
 # TODO: create a proper user permissions system.
-from symone_bot.symone_command import default_response, commands
+from symone_bot.commands import default_response, commands
 
 logging.basicConfig(
     format="%(asctime)s\t%(levelname)s\t%(message)s",
@@ -59,7 +59,7 @@ def parse_query(input_text: str) -> Tuple[str, Union[int, None]]:
 
 
 def response_switch(query: str) -> Callable:
-    switch = {command.query: command.get_response for command in commands}
+    switch = {command.name: command.get_response for command in commands}
     return switch.get(query, default_response)
 
 

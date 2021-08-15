@@ -21,20 +21,21 @@ def create_client(project_id: str):
     return datastore.Client(project_id)
 
 
-class SymoneCommand:
-    def __init__(self, query: str, help_info: str, function: Callable):
-        self.query = query
+class Command:
+    def __init__(self, name: str, help_info: str, function: Callable, aspect_type=None):
+        self.name = name
         self.help_info = help_info
         if not callable(function):
             raise AttributeError(f"'function' must be type Callable.")
         self.callable = function
+        self.aspect_type = aspect_type
 
     def get_response(self, *args) -> Dict[str, str]:
-        print(f"{self.query} called, executing.")
+        print(f"{self.name} called, executing.")
         return self.callable(*args)
 
     def help(self) -> str:
-        return f"`{self.query}`: {self.help_info}."
+        return f"`{self.name}`: {self.help_info}."
 
 
 def default_response(*args) -> dict:
@@ -100,9 +101,9 @@ def add_xp(*args):
 
 
 # List of commands used to build out
-commands: List[SymoneCommand] = [
-    SymoneCommand("default", "", default_response),
-    SymoneCommand("help", "retrieves help info", help_message),
-    SymoneCommand("xp stats", "gets xp info for the party", current_xp),
-    SymoneCommand("add xp", "adds xp to the party total", add_xp),
+commands: List[Command] = [
+    Command("default", "", default_response),
+    Command("help", "retrieves help info", help_message),
+    Command("xp stats", "gets xp info for the party", current_xp),
+    Command("add xp", "adds xp to the party total", add_xp),
 ]

@@ -1,5 +1,5 @@
 from main import parse_slack_data, symone_message
-from symone_bot.symone_command import MESSAGE_RESPONSE_EPHEMERAL
+from symone_bot.commands import MESSAGE_RESPONSE_EPHEMERAL
 
 
 def test_parse_slack_data():
@@ -21,4 +21,3 @@ def test_symone_message():
     actual = symone_message(test_input)
     assert actual["response_type"] == expected["response_type"]
     assert actual["text"] == expected["text"]
-
