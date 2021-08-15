@@ -1,0 +1,23 @@
+name: Release
+on:
+  workflow_run:
+    workflows: ["Main pipeline"]
+    branches: [main]
+    types: 
+      - completed
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Deploy Cloud Function
+      uses: google-github-actions/deploy-cloud-functions@main
+      with:
+        name: symone_bot
+        runtime: python39
+        credentials: ${{ secrets.GCP_SA_KEY }}
+        env_vars: SLACK_SECRET=${{ secrets.SLACK_SECRET }},GAME_MASTER=${{ secrets.GAME_MASTER }}
+

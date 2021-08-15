@@ -33,10 +33,3 @@ jobs:
       run: |
         pip install -r requirements-test.txt
         pytest
-    - name: Deploy Cloud Function
-      uses: google-github-actions/deploy-cloud-functions@main
-      with:
-        name: symone_bot
-        runtime: python39
-        credentials: ${{ secrets.GCP_SA_KEY }}
-        env_vars: SLACK_SECRET=${{ secrets.SLACK_SECRET }},GAME_MASTER=${{ secrets.GAME_MASTER }}
