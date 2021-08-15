@@ -1,14 +1,17 @@
 .PHONY: test format fmt lint
+
+PYTHON?=python3
+
 test:
-	python3 -m pytest
+	$(PYTHON) -m pytest
 
 format:
-	python3 -m black .
+	$(PYTHON) -m black .
 
 fmt: format
 
 lint:
-	flake8 . --max-complexity=10 --max-line-length=127
+	$(PYTHON) -m flake8 . --max-complexity=10 --max-line-length=127
 
 coverage-report:
-	python3 -m pytest . --cov=$(CURDIR) --cov-report html
+	$(PYTHON) -m pytest . --cov=$(CURDIR) --cov-report html
