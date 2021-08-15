@@ -21,3 +21,4 @@ def test_symone_message():
     actual = symone_message(test_input)
     assert actual["response_type"] == expected["response_type"]
     assert actual["text"] == expected["text"]
+    assert False
