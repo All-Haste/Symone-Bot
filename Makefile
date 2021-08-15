@@ -1,8 +1,10 @@
 .PHONY: test format fmt
+PYTHON?=python3
+
 test:
-	python3 -m pytest
+	$(PYTHON) -m pytest
 
 format:
-	python3 -m black .
+	$(PYTHON) -m black .
 
 fmt: format
