@@ -1,8 +1,7 @@
 import os
 import logging
 import sys
-from types import NoneType
-from typing import Dict, Callable, Any, Tuple
+from typing import Dict, Callable, Tuple, Union
 
 from flask import jsonify, Request, Response
 from slack_sdk.signature import SignatureVerifier
@@ -46,7 +45,7 @@ def symone_message(slack_data: dict) -> Dict[str, str]:
     return message
 
 
-def parse_query(input_text: str) -> Tuple[str, Any[int, NoneType]]:
+def parse_query(input_text: str) -> Tuple[str, Union[int, None]]:
     query = input_text.lower().split("+")
     # test if final arg is an int
     number_arg = query[-1]
