@@ -73,6 +73,7 @@ class QueryEvaluator:
             raise SyntaxError("Expected " + toktype)
 
     def _get_response(self) -> SymoneResponse:
+        """Scans through the token set and attempts to return a Command"""
         self._expect("CMD")
         cmd_token = self.tok
         aspect = None
@@ -91,12 +92,12 @@ class QueryEvaluator:
         command_match = "|".join(cmds)
         aspects = ["\\b{}\\b".format(cmd.name) for cmd in self.aspects]
         aspect_match = "|".join(aspects)
-        CMD = r"(?P<CMD>{})".format(command_match)
-        ASPECT = r"(?P<ASPECT>{})".format(aspect_match)
-        NUM = r"(?P<NUM>\d+)"
-        WS = r"(?P<WS>\s+)"
+        cmd = r"(?P<CMD>{})".format(command_match)
+        aspect = r"(?P<ASPECT>{})".format(aspect_match)
+        num = r"(?P<num>\d+)"
+        ws = r"(?P<ws>\s+)"
 
-        pattern = re.compile("|".join([CMD, ASPECT, NUM, WS]))
+        pattern = re.compile("|".join([cmd, aspect, num, ws]))
         return pattern
 
     def _lookup_command(self, cmd_token: Token) -> Command:

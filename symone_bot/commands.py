@@ -22,6 +22,11 @@ def create_client(project_id: str):
 
 
 class Command:
+    """
+    Wrapper around a callable that returns a Flask Response object.
+    This wrapper exists to add metadata to the callable.
+    """
+
     def __init__(self, name: str, help_info: str, function: Callable, aspect_type=None):
         self.name = name
         self.help_info = help_info
