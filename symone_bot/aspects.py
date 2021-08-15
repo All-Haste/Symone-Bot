@@ -4,6 +4,8 @@ from typing import Type
 class Aspect:
     """
     An aspect is a piece of the bot system that commands can be executed on.
+    It is worth noting that an aspect's name will also represent a key under
+    a 'campaign' document kind stored in the document DB.
 
     E.G. XP would be an aspect. Calling `add xp 100` means to:
         add(command) xp(aspect) 100(value)

@@ -29,7 +29,7 @@ def test_get_happy_path():
     assert result.status_code == Response().status_code
 
 
-def test_get():
+def test_get_with_value():
     def sub_func(aspect, value):
         return Response(value, 200)
 
@@ -41,5 +41,17 @@ def test_get():
 
     result = response.get()
     expected = Response("test", 200)
+    assert result.status_code == expected.status_code
+    assert result.data == expected.data
+
+
+def test_get_with_only_aspect():
+    def sub_func(aspect):
+        return Response()
+
+    response = SymoneResponse(Command("foo", "", sub_func), aspect=Aspect("bar", ""))
+
+    result = response.get()
+    expected = Response()
     assert result.status_code == expected.status_code
     assert result.data == expected.data

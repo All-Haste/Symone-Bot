@@ -23,7 +23,9 @@ class SymoneResponse:
                 raise AttributeError(
                     f"Aspect value type ({self.aspect.value_type}) does not match supplied type ({type(value)})"
                 )
-            if not isinstance(value, self.aspect.value_type):
+            if self.aspect.value_type is not None and not isinstance(
+                value, self.aspect.value_type
+            ):
                 raise AttributeError(
                     f"Aspect value type ({self.aspect.value_type}) does not match supplied type ({type(value)})"
                 )
