@@ -1,4 +1,7 @@
-from typing import Type
+import os
+from typing import Type, List
+
+GAME_MASTER = os.getenv("GAME_MASTER")
 
 
 class Aspect:
@@ -11,13 +14,18 @@ class Aspect:
         add(command) xp(aspect) 100(value)
     """
 
-    def __init__(self, name, help_info, value_type: Type = None):
+    def __init__(
+        self, name: str, help_info: str, value_type: Type = None, allowed_users=None
+    ):
+        if allowed_users is None:
+            allowed_users = [GAME_MASTER]
         self.name = name
         self.help_info = help_info
         self.value_type = value_type
+        self.allowed_users = allowed_users
 
     def help(self) -> str:
         return f"`{self.name}`: {self.help_info}."
 
 
-aspect_list = [Aspect("xp", "experience points")]
+aspect_list: List[Aspect] = [Aspect("xp", "experience points")]

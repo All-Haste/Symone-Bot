@@ -1,14 +1,17 @@
 import os
 import logging
 import sys
-from typing import Dict, Callable, Tuple, Union
+from typing import Dict, Tuple, Union
 
 from flask import jsonify, Request, Response
 from slack_sdk.signature import SignatureVerifier
 
 # This is the ID of the GM user in slack
 # TODO: create a proper user permissions system.
-from symone_bot.commands import default_response, commands
+from symone_bot.aspects import aspect_list
+from symone_bot.commands import command_list
+from symone_bot.metadata import QueryMetaData
+from symone_bot.parser import QueryEvaluator
 
 logging.basicConfig(
     format="%(asctime)s\t%(levelname)s\t%(message)s",
@@ -35,14 +38,15 @@ def symone_message(slack_data: dict) -> Dict[str, str]:
 
     if not input_text:
         query = ""
-        number_arg = None
     else:
-        query, number_arg = parse_query(input_text)
+        query = input_text.lower().split("+")
 
-    response_callable = response_switch(query)
-    message = response_callable((user_id, number_arg))
+    evaluator = QueryEvaluator(command_list, aspect_list)
+    response = evaluator.parse(query)
+    metadata = QueryMetaData(user_id)
+    response.metadata = metadata
 
-    return message
+    return response.get()
 
 
 def parse_query(input_text: str) -> Tuple[str, Union[int, None]]:
@@ -56,11 +60,6 @@ def parse_query(input_text: str) -> Tuple[str, Union[int, None]]:
         number_arg = None
         query = " ".join(query)
     return query, number_arg
-
-
-def response_switch(query: str) -> Callable:
-    switch = {command.name: command.get_response for command in commands}
-    return switch.get(query, default_response)
 
 
 def parse_slack_data(request_body: bytes) -> Dict[str, str]:

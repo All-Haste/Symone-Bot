@@ -1,6 +1,10 @@
+import logging
 import os
-from typing import Dict, Callable, List
+from typing import Dict, Callable, List, Any
 from google.cloud import datastore
+
+from symone_bot.aspects import Aspect
+from symone_bot.metadata import QueryMetaData
 
 GAME_MASTER = os.getenv("GAME_MASTER")
 PROJECT_ID = os.getenv("PROJECT_ID")
@@ -53,7 +57,7 @@ def default_response(*args) -> dict:
 def help_message(*args) -> dict:
     """Auto generates help message by gathering the help info from each SymoneCommand."""
     text = """"""
-    for command in commands:
+    for command in command_list:
         if not command.callable == default_response:
             text += f"{command.help()}\n"
     return {
@@ -105,10 +109,38 @@ def add_xp(*args):
     }
 
 
+def add(metadata: QueryMetaData, aspect: Aspect, value: Any) -> Dict[str, str]:
+    if metadata.user_id not in aspect.allowed_users:
+        logging.warning(
+            f"Unauthorized user attempted to execute add command on {aspect.name} Aspect."
+        )
+        return {
+            "response_type": MESSAGE_RESPONSE_CHANNEL,
+            "text": "Nice try...",
+        }
+
+    datastore_client = create_client(PROJECT_ID)
+    query = datastore_client.query(kind="campaign").fetch()
+    result = query.next()
+
+    party_xp = result[aspect.name]
+    new_xp = party_xp + value
+    result[aspect.name] = new_xp
+    datastore_client.put(result)
+
+    logging.info(f"Updated {aspect.name} to {new_xp}")
+
+    return {
+        "response_type": MESSAGE_RESPONSE_CHANNEL,
+        "text": f"Updated {aspect.name} to {new_xp}",
+    }
+
+
 # List of commands used to build out
-commands: List[Command] = [
+command_list: List[Command] = [
     Command("default", "", default_response),
     Command("help", "retrieves help info", help_message),
     Command("xp stats", "gets xp info for the party", current_xp),
     Command("add xp", "adds xp to the party total", add_xp),
+    Command("add", "adds a given value to a given aspect.", add),
 ]
