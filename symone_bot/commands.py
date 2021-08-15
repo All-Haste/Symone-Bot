@@ -31,7 +31,7 @@ class Command:
         self.name = name
         self.help_info = help_info
         if not callable(function):
-            raise AttributeError(f"'function' must be type Callable.")
+            raise AttributeError("'function' must be type Callable.")
         self.callable = function
         self.aspect_type = aspect_type
 
@@ -85,7 +85,7 @@ def add_xp(*args):
         print(f"{user} != {GAME_MASTER}")
         return {
             "response_type": MESSAGE_RESPONSE_CHANNEL,
-            "text": f"Nice try...",
+            "text": "Nice try...",
         }
     xp_to_add = args[0][1]
     datastore_client = create_client(PROJECT_ID)

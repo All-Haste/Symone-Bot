@@ -29,10 +29,7 @@ def generate_tokens(text: str, master_pattern: Pattern) -> Generator:
 
 class QueryEvaluator:
     """
-    Implementation of a recursive descent parser. Use the ._accept() method
-    to test and accept the current lookahead token.  Use the ._expect()
-    method to exactly match and discard the next token on the input
-    (or raise a SyntaxError if it doesn't match).
+    A recursive descent parser for parsing through a query with the `parse` method.
     """
 
     def __init__(self, commands: List[Command], aspects: List[Aspect]):
@@ -42,7 +39,7 @@ class QueryEvaluator:
         self.commands = commands
         self.aspects = aspects
 
-    def parse(self, query) -> SymoneResponse:
+    def parse(self, query: str) -> SymoneResponse:
         """
         Parses a query string and returns a SymoneResponse object.
         :param query: query text.
@@ -59,7 +56,7 @@ class QueryEvaluator:
         """Advance one token ahead"""
         self.tok, self.nexttok = self.nexttok, next(self.tokens, None)
 
-    def _accept(self, toktype):
+    def _accept(self, toktype: str):
         """Test and consume the next token if it matches toktype"""
         if self.nexttok and self.nexttok.type == toktype:
             self._advance()
@@ -67,7 +64,7 @@ class QueryEvaluator:
         else:
             return False
 
-    def _expect(self, toktype):
+    def _expect(self, toktype: str):
         """Consume next token if it matches toktype or raise SyntaxError"""
         if not self._accept(toktype):
             raise SyntaxError("Expected " + toktype)

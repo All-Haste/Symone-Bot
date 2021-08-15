@@ -42,6 +42,12 @@ def test_parse(query_evaluator):
     assert response.value == 3
 
 
+@pytest.mark.parametrize("query", ["bar foo 3", "3 bar foo", "3 foo", "bar", "3"])
+def test_parse_throws_error_if_command_is_not_first(query, query_evaluator):
+    with pytest.raises(SyntaxError):
+        query_evaluator.parse(query)
+
+
 def test__get_master_pattern(query_evaluator):
     pattern = query_evaluator._get_master_pattern()
 
