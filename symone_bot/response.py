@@ -19,6 +19,10 @@ class SymoneResponse:
         self.command = command
         self.aspect = aspect
         if self.aspect is not None:
+            if self.aspect.value_type is None and value is not None:
+                raise AttributeError(
+                    f"Aspect value type ({self.aspect.value_type}) does not match supplied type ({type(value)})"
+                )
             if not isinstance(value, self.aspect.value_type):
                 raise AttributeError(
                     f"Aspect value type ({self.aspect.value_type}) does not match supplied type ({type(value)})"
