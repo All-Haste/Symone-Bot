@@ -2,7 +2,7 @@ import os
 from typing import Dict, Callable, List
 from google.cloud import datastore
 
-GAME_MASTER = os.getenv('GAME_MASTER')
+GAME_MASTER = os.getenv("GAME_MASTER")
 PROJECT_ID = os.getenv("PROJECT_ID")
 MESSAGE_RESPONSE_CHANNEL = "in_channel"
 MESSAGE_RESPONSE_EPHEMERAL = "ephemeral"
@@ -11,7 +11,6 @@ DATA_KEY_CAMPAIGN = "campaign"
 
 
 # TODO bot functions:
-# GM add xp
 # GM add gold
 # Any add loot
 # Did they level?
@@ -41,7 +40,7 @@ class SymoneCommand:
 def default_response(*args) -> dict:
     return {
         "response_type": MESSAGE_RESPONSE_EPHEMERAL,
-        "text": "I am Symone Bot. I keep track of party gold, XP, and loot. Type `/symone help` to see what I can do."
+        "text": "I am Symone Bot. I keep track of party gold, XP, and loot. Type `/symone help` to see what I can do.",
     }
 
 
@@ -86,6 +85,7 @@ def add_xp(*args):
     datastore_client = create_client(PROJECT_ID)
     query = datastore_client.query(kind="campaign").fetch()
     result = query.next()
+
     party_xp = result["xp"]
     new_xp = party_xp + xp_to_add
     result["xp"] = new_xp

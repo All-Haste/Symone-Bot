@@ -1,47 +1,62 @@
 import os
-from typing import Dict, Callable
+import logging
+import sys
+from types import NoneType
+from typing import Dict, Callable, Any, Tuple
 
 from flask import jsonify, Request, Response
 from slack_sdk.signature import SignatureVerifier
 
 # This is the ID of the GM user in slack
 # TODO: create a proper user permissions system.
-from symone_command import default_response, commands
+from symone_bot.symone_command import default_response, commands
+
+logging.basicConfig(
+    format="%(asctime)s\t%(levelname)s\t%(message)s",
+    datefmt="%m/%d/%Y %I:%M:%S %p",
+    stream=sys.stdout,
+    level=logging.DEBUG,
+)
 
 
 def verify_signature(request: Request):
+    logging.info("Verifying signature of Slack secret.")
     request.get_data()  # Decodes received requests into request.data
 
     verifier = SignatureVerifier(os.environ["SLACK_SECRET"])
 
     if not verifier.is_valid_request(request.data, request.headers):
+        logging.warning("Provided secret failed verification.")
         return Response("Unauthorized", status=401)
 
 
 def symone_message(slack_data: dict) -> Dict[str, str]:
-    print(slack_data)
     input_text = slack_data.get("text")
     user_id = slack_data.get("user_id")
-    arg = None
+
     if not input_text:
         query = ""
+        number_arg = None
     else:
-        query = input_text.lower().split("+")
+        query, number_arg = parse_query(input_text)
 
-        # test if final arg is an int
-        arg = query[-1]
-        try:
-            arg = int(arg)
-            query = " ".join(query[:-1])
-        except ValueError:
-            arg = None
-            query = " ".join(query)
-
-    print(f"query: {query}")
     response_callable = response_switch(query)
-    message = response_callable((user_id, arg))
+    message = response_callable((user_id, number_arg))
 
     return message
+
+
+def parse_query(input_text: str) -> Tuple[str, Any[int, NoneType]]:
+    query = input_text.lower().split("+")
+    # test if final arg is an int
+    number_arg = query[-1]
+    try:
+        number_arg = int(number_arg)
+        query = " ".join(query[:-1])
+    except ValueError:
+        number_arg = None
+        query = " ".join(query)
+    return query, number_arg
 
 
 def response_switch(query: str) -> Callable:
@@ -66,6 +81,11 @@ def parse_slack_data(request_body: bytes) -> Dict[str, str]:
 
 
 def symone_bot(request: Request) -> Response:
+    """
+    Primary point of ingress for the bot.
+    :param request: inbound request. Note GCP function provides this as a Flask request.
+    :return: Flask formatted response.
+    """
     if request.method != "POST":
         return Response("Only POST requests are accepted", status=405)
 
