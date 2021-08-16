@@ -75,7 +75,7 @@ def add(metadata: QueryMetaData, aspect: Aspect, value: Any) -> Dict[str, str]:
         }
 
     datastore_client = create_client(PROJECT_ID)
-    query = datastore_client.query(kind="campaign").fetch()
+    query = datastore_client.query(kind=DATA_KEY_CAMPAIGN).fetch()
     result = query.next()
 
     party_xp = result[aspect.name]
