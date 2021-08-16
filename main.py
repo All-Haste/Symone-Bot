@@ -1,11 +1,10 @@
 import os
 import logging
 import sys
-from typing import Dict, Tuple, Union
+from typing import Dict
 
 from flask import jsonify, Request, Response
 from slack_sdk.signature import SignatureVerifier
-
 
 from symone_bot.aspects import aspect_list
 from symone_bot.commands import command_list
@@ -46,19 +45,6 @@ def symone_message(slack_data: dict) -> Dict[str, str]:
     response.metadata = metadata
 
     return response.get()
-
-
-def parse_query(input_text: str) -> Tuple[str, Union[int, None]]:
-    query = input_text.lower().split("+")
-    # test if final arg is an int
-    number_arg = query[-1]
-    try:
-        number_arg = int(number_arg)
-        query = " ".join(query[:-1])
-    except ValueError:
-        number_arg = None
-        query = " ".join(query)
-    return query, number_arg
 
 
 def parse_slack_data(request_body: bytes) -> Dict[str, str]:

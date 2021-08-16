@@ -2,19 +2,7 @@ import re
 
 import pytest
 
-from symone_bot.aspects import Aspect
-from symone_bot.commands import Command
 from symone_bot.parser import generate_tokens, QueryEvaluator, Token
-
-
-@pytest.fixture
-def test_commands():
-    return [Command("foo", "", lambda: 1 + 1)]
-
-
-@pytest.fixture
-def test_aspects():
-    return [Aspect("bar", "", int)]
 
 
 @pytest.fixture
@@ -62,7 +50,7 @@ def test__lookup_function(query_evaluator):
     command = query_evaluator._lookup_command(cmd_token)
 
     assert command.name == "foo"
-    assert command.help_info == ""
+    assert command.help_info == "does foo stuff"
 
 
 def test__lookup_aspect(query_evaluator):
@@ -70,5 +58,5 @@ def test__lookup_aspect(query_evaluator):
     aspect = query_evaluator._lookup_aspect(aspect_token)
 
     assert aspect.name == "bar"
-    assert aspect.help_info == ""
+    assert aspect.help_info == "a bar aspect"
     assert aspect.value_type == int
