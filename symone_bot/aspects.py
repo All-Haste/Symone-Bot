@@ -28,4 +28,4 @@ class Aspect:
         return f"`{self.name}`: {self.help_info}."
 
 
-aspect_list: List[Aspect] = [Aspect("xp", "experience points")]
+aspect_list: List[Aspect] = [Aspect("xp", "experience points", value_type=int)]
