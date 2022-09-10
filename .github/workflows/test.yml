@@ -32,5 +32,4 @@ jobs:
         SLACK_SIGNING_SECRET: ${{ secrets.SLACK_SIGNING_SECRET}}
       run: |
         pip install -r requirements-test.txt
-        pytest . --cov=. --cov-report xml
-        coverage report --fail-under=99
+        pytest .
