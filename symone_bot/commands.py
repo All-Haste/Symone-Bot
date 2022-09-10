@@ -31,15 +31,29 @@ class Command:
     """
     Wrapper around a callable that returns a Flask Response object.
     This wrapper exists to add metadata to the callable.
+
+    param name: The name of the command.
+    param help_info: Help info for the command. Usually just a simple string.
+    param function: The callable to wrap.
+    param aspect_type: The type of aspect to use for this command.
+    param is_modifier: Whether  this command is a modifier.
     """
 
-    def __init__(self, name: str, help_info: str, function: Callable, aspect_type=None):
+    def __init__(
+        self,
+        name: str,
+        help_info: str,
+        function: Callable,
+        aspect_type: Aspect = None,
+        is_modifier: bool = False,
+    ):
         self.name = name
         self.help_info = help_info
         if not callable(function):
             raise AttributeError("'function' must be type Callable.")
         self.callable = function
         self.aspect_type = aspect_type
+        self.is_modifier = is_modifier
 
     def help(self) -> str:
         return f"`{self.name}`: {self.help_info}."
@@ -115,6 +129,6 @@ def get_campaign(datastore_client=None) -> Dict[str, Any]:
 command_list: List[Command] = [
     Command("default", "", default_response),
     Command("help", "retrieves help info", help_message),
-    Command("add", "adds a given value to a given aspect.", add),
+    Command("add", "adds a given value to a given aspect.", add, is_modifier=True),
     Command("current", "retrieves the current value of a given aspect.", current),
 ]

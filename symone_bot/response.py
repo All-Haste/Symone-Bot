@@ -24,20 +24,20 @@ class SymoneResponse:
         self.metadata = metadata
         self.command = command
         self.aspect = aspect
-        if self.command in [
-            command_list[2]
-        ]:  # TODO this is terrible, migrate these lists to dictionaries
-            if self.aspect.value_type is None and value is not None:
-                raise AttributeError(
-                    f"Aspect value type ({self.aspect.value_type}) does not match supplied type ({type(value)})"
-                )
-            if self.aspect.value_type is not None and not isinstance(
-                value, self.aspect.value_type
-            ):
-                raise AttributeError(
-                    f"Aspect value type ({self.aspect.value_type}) does not match supplied type ({type(value)})"
-                )
+        if self.command.is_modifier:
+            self.check_modifier_command_attributes(self.aspect, value)
         self.value = value
+
+    @staticmethod
+    def check_modifier_command_attributes(aspect, value):
+        if aspect.value_type is None and value is not None:
+            raise AttributeError(
+                f"Aspect value type ({aspect.value_type}) does not match supplied type ({type(value)})"
+            )
+        if aspect.value_type is not None and not isinstance(value, aspect.value_type):
+            raise AttributeError(
+                f"Aspect value type ({aspect.value_type}) does not match supplied type ({type(value)})"
+            )
 
     def get(self) -> Dict[str, str]:
         """
