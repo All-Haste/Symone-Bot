@@ -1,7 +1,7 @@
 import pytest
 from flask import Response
 
-from symone_bot.aspects import Aspect, aspect_list
+from symone_bot.aspects import Aspect
 from symone_bot.commands import Command, command_list, current
 from symone_bot.metadata import QueryMetaData
 from symone_bot.response import SymoneResponse
