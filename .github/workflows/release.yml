@@ -20,5 +20,5 @@ jobs:
           entry_point: handler
           runtime: python310
           credentials: ${{ secrets.GCP_SA_KEY }}
-          env_vars: SLACK_SIGNING_SECRET=${{ secrets.SLACK_SIGNING_SECRET }},GAME_MASTER=${{ secrets.GAME_MASTER }},SLACK_BOT_TOKEN=${{ secrets.SLACK_BOT_TOKEN}},PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
+          env_vars: SLACK_SIGNING_SECRET=${{ secrets.SLACK_SIGNING_SECRET }},GAME_MASTER=${{ secrets.GAME_MASTER }},SLACK_BOT_TOKEN=${{ secrets.SLACK_BOT_TOKEN}},PROJECT_ID=${{ secrets.GCP_PROJECT_ID }},DEPLOYMENT_ENVIRONMENT=prod
 
