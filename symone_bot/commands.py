@@ -215,5 +215,7 @@ command_list: List[Command] = [
         current,
         is_modifier=False,
     ),
-    Command('remove', 'removes a given value from a given aspect.', remove, is_modifier=True),
+    Command(
+        "remove", "removes a given value from a given aspect.", remove, is_modifier=True
+    ),
 ]
