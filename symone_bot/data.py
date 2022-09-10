@@ -6,9 +6,7 @@ from google.cloud.datastore import Key
 
 DATA_KEY_CAMPAIGN = "campaign"
 DATA_KEY_CURRENT_CAMPAIGN = "current_campaign"
-
 PROJECT_ID = os.getenv("PROJECT_ID")
-CURRENT_CAMPAIGN_ENTITY_ID = str(os.getenv("CURRENT_CAMPAIGN_ENTITY_ID"))
 
 
 def create_client(project_id: str):
