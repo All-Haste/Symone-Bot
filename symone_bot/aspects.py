@@ -15,7 +15,12 @@ class Aspect:
     """
 
     def __init__(
-        self, name: str, help_info: str, value_type: Type = None, allowed_users=None
+        self,
+        name: str,
+        help_info: str,
+        value_type: Type = None,
+        allowed_users=None,
+        is_singleton=False,
     ):
         if allowed_users is None:
             allowed_users = [GAME_MASTER]
@@ -23,6 +28,7 @@ class Aspect:
         self.help_info = help_info
         self.value_type = value_type
         self.allowed_users = allowed_users
+        self.is_singleton = is_singleton
 
     def help(self) -> str:
         return f"`{self.name}`: {self.help_info}."
@@ -33,4 +39,5 @@ aspect_list: List[Aspect] = [
     Aspect("xp_target", "target experience points", value_type=int),
     Aspect("gold", "gold pieces", value_type=int),
     Aspect("party_size", "party size", value_type=int),
+    Aspect("campaign", "campaign name", value_type=str, is_singleton=True),
 ]

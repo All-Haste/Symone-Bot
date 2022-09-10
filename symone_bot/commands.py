@@ -111,6 +111,12 @@ def add(metadata: QueryMetaData, aspect: Aspect, value: Any) -> Dict[str, str]:
             "text": "Nice try...",
         }
 
+    if aspect.is_singleton:
+        return {
+            "response_type": MESSAGE_RESPONSE_CHANNEL,
+            "text": f"{aspect.name} is a singleton aspect, you can't add to it.",
+        }
+
     datastore_client = create_client(PROJECT_ID)
     campaign = get_campaign()
 

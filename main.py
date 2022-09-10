@@ -1,5 +1,6 @@
 import logging
 import os
+import random
 import re
 import sys
 from typing import Dict
@@ -100,11 +101,20 @@ def message_help(message, say):
 )
 def message_did_they_level_up(message, say):
     """Responds to a user asking if they leveled up."""
+    if random.randint(0, 1) == 0:
+        reply = mocking_spongebob_reply(message)
+    else:
+        reply = "No :arms_crossed:"
+    say(reply)
+
+
+def mocking_spongebob_reply(message):
     original_text = message.get("text")
     mocking_text = "".join(
         [x.upper() if i % 2 else x.lower() for i, x in enumerate(original_text)]
     )
-    say(f':spongebob-mocking: "{mocking_text}" :spongebob-mocking:')
+    reply = f':spongebob-mocking: "{mocking_text}" :spongebob-mocking:'
+    return reply
 
 
 @app.message(re.compile("Symone, (.*)"))
