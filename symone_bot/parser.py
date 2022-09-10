@@ -2,6 +2,7 @@
 Tools to parse queries to the bot.
 """
 import collections
+import logging
 import re
 from typing import Generator, List, Pattern
 
@@ -84,6 +85,9 @@ class QueryEvaluator:
                 if self._accept("NUM"):
                     value = int(self.tok[1])
 
+        logging.info(
+            f"Parser: found Command: {command}, Aspect: {aspect}, Value: {value}"
+        )
         return SymoneResponse(command, aspect=aspect, value=value)
 
     def _get_master_pattern(self):

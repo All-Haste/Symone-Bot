@@ -10,7 +10,7 @@ from werkzeug import Request
 
 from symone_bot.aspects import aspect_list
 from symone_bot.commands import command_list
-from symone_bot.HandlerSource import HandlerSource
+from symone_bot.handler_source import HandlerSource
 from symone_bot.metadata import QueryMetaData
 from symone_bot.parser import QueryEvaluator
 from symone_bot.response import SymoneResponse
