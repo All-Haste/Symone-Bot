@@ -1,9 +1,9 @@
 name: Release
 on:
   workflow_run:
-    workflows: ["test"]
-    branches: [main]
-    types: 
+    workflows: [ "test" ]
+    branches: [ main ]
+    types:
       - completed
 
 jobs:
@@ -12,13 +12,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Deploy Cloud Function
-      uses: google-github-actions/deploy-cloud-functions@main
-      with:
-        name: symone_bot
-        entry_point: handler
-        runtime: python39
-        credentials: ${{ secrets.GCP_SA_KEY }}
-        env_vars: SLACK_SIGNING_SECRET=${{ secrets.SLACK_SIGNING_SECRET }},GAME_MASTER=${{ secrets.GAME_MASTER }}, SLACK_BOT_TOKEN=${{ secrets.SLACK_BOT_TOKEN}}
+      - uses: actions/checkout@v2
+      - name: Deploy Cloud Function
+        uses: google-github-actions/deploy-cloud-functions@main
+        with:
+          name: symone_bot
+          entry_point: handler
+          runtime: python39
+          credentials: ${{ secrets.GCP_SA_KEY }}
+          env_vars: SLACK_SIGNING_SECRET=${{ secrets.SLACK_SIGNING_SECRET }},GAME_MASTER=${{ secrets.GAME_MASTER }},SLACK_BOT_TOKEN=${{ secrets.SLACK_BOT_TOKEN}},PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
 
