@@ -23,7 +23,13 @@ logging.basicConfig(
 
 def symone_message(slack_data: dict) -> Dict[str, str]:
     input_text = slack_data.get("text")
-    user_id = slack_data.get("user_id")
+    user_id = slack_data.get("user")
+
+    if user_id is None:
+        return {
+            "response_type": "ephemeral",
+            "text": "Sorry, Slack told me your user ID is blank? That's weird. Please try again.",
+        }
 
     if not input_text:
         query = ""
