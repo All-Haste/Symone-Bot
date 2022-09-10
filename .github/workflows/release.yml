@@ -17,6 +17,7 @@ jobs:
       uses: google-github-actions/deploy-cloud-functions@main
       with:
         name: symone_bot
+        entrypoint: handler
         runtime: python39
         credentials: ${{ secrets.GCP_SA_KEY }}
         env_vars: SLACK_SIGNING_SECRET=${{ secrets.SLACK_SIGNING_SECRET }},GAME_MASTER=${{ secrets.GAME_MASTER }}, SLACK_BOT_TOKEN=${{ secrets.SLACK_BOT_TOKEN}}

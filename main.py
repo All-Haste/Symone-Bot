@@ -4,6 +4,8 @@ import sys
 from typing import Dict
 
 from slack_bolt import App
+from slack_bolt.adapter.google_cloud_functions import SlackRequestHandler
+from werkzeug import Request
 
 from symone_bot.aspects import aspect_list
 from symone_bot.commands import command_list
@@ -54,6 +56,7 @@ def parse_slack_data(request_body: bytes) -> Dict[str, str]:
 app = App(
     token=os.environ.get("SLACK_BOT_TOKEN"),
     signing_secret=os.environ.get("SLACK_SIGNING_SECRET"),
+    process_before_response=True,
 )
 
 
@@ -62,5 +65,12 @@ def message_hello(message, say):
     say(f"Hey there <@{message['user']}>!")
 
 
-if __name__ == "__main__":
-    app.start(port=int(os.environ.get("PORT", 5000)))
+def handler(request: Request):
+    """
+    This is the handler function that is called when an event is
+    received from Slack.
+    param request: inbound request
+    return: response sent to Slack
+    """
+    slack_handler = SlackRequestHandler(app=app)
+    return slack_handler.handle(request)
