@@ -1,7 +1,12 @@
 import pytest
 
-from symone_bot.commands import (Command, add, create_client, default_response,
-                                 help_message)
+from symone_bot.commands import (
+    Command,
+    add,
+    create_client,
+    default_response,
+    help_message,
+)
 
 
 def test_create_client(mocker):
