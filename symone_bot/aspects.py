@@ -30,7 +30,7 @@ class Aspect:
 
 aspect_list: List[Aspect] = [
     Aspect("xp", "experience points", value_type=int),
-    Aspect("target_xp", "target experience points", value_type=int),
+    Aspect("xp_target", "target experience points", value_type=int),
     Aspect("gold", "gold pieces", value_type=int),
     Aspect("party_size", "party size", value_type=int),
 ]
