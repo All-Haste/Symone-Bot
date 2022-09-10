@@ -12,6 +12,7 @@ from symone_bot.aspects import aspect_list
 from symone_bot.commands import command_list
 from symone_bot.metadata import QueryMetaData
 from symone_bot.parser import QueryEvaluator
+from symone_bot.response import SymoneResponse
 
 logging.basicConfig(
     format="%(asctime)s\t%(levelname)s\t%(message)s",
@@ -55,7 +56,8 @@ def message_hello(message, say, context):
 
 @app.message("What can you do Symone?")
 def message_help(say):
-    say(f"HELP NOT AVAILABLE AHG ERIC IS A TERRIBLE PROGRAMMER")
+    help_command = command_list[1]
+    say(SymoneResponse(help_command).get())
 
 
 @app.message(re.compile("Symone, (.*)"))

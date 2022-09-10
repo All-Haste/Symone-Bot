@@ -75,13 +75,16 @@ def add(metadata: QueryMetaData, aspect: Aspect, value: Any) -> Dict[str, str]:
         }
 
     datastore_client = create_client(PROJECT_ID)
-    query = datastore_client.query(kind=DATA_KEY_CAMPAIGN).fetch()
-    result = query.next()
+    query = datastore_client.query(kind=DATA_KEY_CAMPAIGN)
+    query.key_filter("rotrl")
+    campaign = list(query.fetch())[0]
 
-    party_xp = result[aspect.name]
+    logging.info(campaign)
+
+    party_xp = campaign[aspect.name]
     new_xp = party_xp + value
-    result[aspect.name] = new_xp
-    datastore_client.put(result)
+    campaign[aspect.name] = new_xp
+    datastore_client.put(campaign)
 
     logging.info(f"Updated {aspect.name} to {new_xp}")
 
