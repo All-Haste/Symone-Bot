@@ -101,7 +101,7 @@ def message_help(message, say):
 )
 def message_did_they_level_up(message, say):
     """Responds to a user asking if they leveled up."""
-    if random.randint(0, 1) == 0:
+    if bool(random.getrandbits(1)):
         reply = mocking_spongebob_reply(message)
     else:
         reply = "No :arms_crossed:"
@@ -109,6 +109,12 @@ def message_did_they_level_up(message, say):
 
 
 def mocking_spongebob_reply(message):
+    """
+    Returns a mocking spongebob reply.
+
+    param message: message received from Slack
+    return: mocking spongebob reply
+    """
     original_text = message.get("text")
     mocking_text = "".join(
         [x.upper() if i % 2 else x.lower() for i, x in enumerate(original_text)]
@@ -130,9 +136,10 @@ def aspect_query_handler(message, say, context):
 
 
 @app.error
-def custom_error_handler(error, body, logger):
+def custom_error_handler(error, body, logger, say):
     logger.exception(f"Error: {error}")
     logger.info(f"Request body: {body}")
+    say("Sorry, something went wrong. Please try again.")
 
 
 def handler(request: Request):
@@ -141,6 +148,7 @@ def handler(request: Request):
     received from Slack. This is needed to handle Slack inputs for Google Cloud Functions.
     Typically, a slack bot would use the app.start() function to start the server, but for
     cloud functions, SlackRequestHandler is used instead.
+
     param request: inbound request
     return: response sent to Slack
     """
