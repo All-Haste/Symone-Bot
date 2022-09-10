@@ -1,5 +1,5 @@
-import os
 import logging
+import os
 import re
 import sys
 from typing import Dict
@@ -8,9 +8,9 @@ from slack_bolt import App
 from slack_bolt.adapter.google_cloud_functions import SlackRequestHandler
 from werkzeug import Request
 
-from symone_bot.HandlerSource import HandlerSource
 from symone_bot.aspects import aspect_list
 from symone_bot.commands import command_list
+from symone_bot.HandlerSource import HandlerSource
 from symone_bot.metadata import QueryMetaData
 from symone_bot.parser import QueryEvaluator
 from symone_bot.response import SymoneResponse

@@ -1,10 +1,9 @@
 """
 Tools to parse queries to the bot.
 """
-import re
 import collections
-
-from typing import List, Generator, Pattern
+import re
+from typing import Generator, List, Pattern
 
 from symone_bot.aspects import Aspect
 from symone_bot.commands import Command

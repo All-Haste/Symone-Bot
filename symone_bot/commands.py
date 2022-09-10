@@ -1,6 +1,7 @@
 import logging
 import os
-from typing import Dict, Callable, List, Any
+from typing import Any, Callable, Dict, List
+
 from google.cloud import datastore
 from google.cloud.datastore import Key
 

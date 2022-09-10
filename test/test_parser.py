@@ -2,7 +2,7 @@ import re
 
 import pytest
 
-from symone_bot.parser import generate_tokens, QueryEvaluator, Token
+from symone_bot.parser import QueryEvaluator, Token, generate_tokens
 
 
 @pytest.fixture

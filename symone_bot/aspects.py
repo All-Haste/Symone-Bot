@@ -1,5 +1,5 @@
 import os
-from typing import Type, List
+from typing import List, Type
 
 GAME_MASTER = os.getenv("GAME_MASTER")
 

@@ -3,47 +3,53 @@ name: Test
 on: [ push, pull_request ]
 
 jobs:
-  build:
+
+  create-virtualenv:
     environment: Test Run
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v2
-      - run: |
-          git fetch --prune --unshallow
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v2
-        with:
-          python-version: "3.10"
-          cache: 'pip'
-      - name: Cache
-        uses: actions/cache@v3.0.8
-        id: cache-venv  # name for referring later
-        with:
-          path: ./.venv/  # what we cache: the virtualenv
-          # The cache key depends on requirements.txt
-          key: ${{ runner.os }}-venv-${{ hashFiles('**/requirements*.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-venv-
-      # Build a virtualenv, but only if it doesn't already exist
-      - run: python -m venv ./.venv && . ./.venv/bin/activate &&
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install -r requirements-test.txt
-          pip install flake8
-        if: steps.cache-venv.outputs.cache-hit != 'true'
-      - name: Lint with flake8
-        run: |
-          . ./.venv/bin/activate &&
-          # stop the build if there are Python syntax errors or undefined names
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-      - name: Test with pytest
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          SLACK_SIGNING_SECRET: ${{ secrets.SLACK_SIGNING_SECRET}}
-        run: |
-          . ./.venv/bin/activate &&
-          pip install -r requirements-test.txt
-          pytest .
+      - uses: actions/checkout@v1
+      - uses: actions/setup-python@v2
+      - uses: syphar/restore-virtualenv@v1
+        id: cache-virtualenv
+
+      - uses: syphar/restore-pip-download-cache@v1
+        if: steps.cache-virtualenv.outputs.cache-hit != 'true'
+
+      - run: pip install -r requirements.txt
+        if: steps.cache-virtualenv.outputs.cache-hit != 'true'
+
+      - run: pip install -r requirements-test.txt
+        if: steps.cache-virtualenv.outputs.cache-hit != 'true'
+
+      - run: pip install flake8 black isort
+        if: steps.cache-virtualenv.outputs.cache-hit != 'true'
+
+  linter:
+    environment: Test Run
+    needs: create-virtualenv
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-python@v2
+      - uses: syphar/restore-virtualenv@v1
+        id: cache-virtualenv
+
+      - run: flake8
+      - run: isort . --diff --check-only
+      - run: black --check --diff .
+
+  tests:
+    environment: Test Run
+    needs: create-virtualenv
+    runs-on: ubuntu-latest
+    env:
+      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+      SLACK_SIGNING_SECRET: ${{ secrets.SLACK_SIGNING_SECRET}}
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-python@v2
+      - uses: syphar/restore-virtualenv@v1
+        id: cache-virtualenv
+
+      - run: py.test
