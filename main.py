@@ -1,5 +1,6 @@
 import os
 import logging
+import re
 import sys
 from typing import Dict
 
@@ -60,9 +61,19 @@ app = App(
 )
 
 
-@app.message("Symone")
-def message_hello(message, say):
-    say(f"Hey there <@{message['user']}>!")
+@app.message(re.compile("(hi|hello|hey) Symone"))
+def message_hello(message, say, context):
+    say(f"{context['matches'][0]} there <@{message['user']}>")
+
+
+@app.message("What can you do Symone?")
+def message_help(say):
+    say(f"HELP NOT AVAILABLE AHG ERIC IS A TERRIBLE PROGRAMMER")
+
+
+@app.message(re.compile("Symone, (.*)"))
+def aspect_query_handler(message, say):
+    say(f"I got: \"{message}\"")
 
 
 def handler(request: Request):
