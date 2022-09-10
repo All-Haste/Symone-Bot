@@ -2,28 +2,19 @@ import logging
 import os
 from typing import Any, Callable, Dict, List
 
-from google.cloud import datastore
-from google.cloud.datastore import Key
-
 from symone_bot.aspects import Aspect, aspect_list
+from symone_bot.data import PROJECT_ID, create_client, get_campaign
 from symone_bot.metadata import QueryMetaData
 
 GAME_MASTER = os.getenv("GAME_MASTER")
-PROJECT_ID = os.getenv("PROJECT_ID")
 MESSAGE_RESPONSE_CHANNEL = "in_channel"
 MESSAGE_RESPONSE_EPHEMERAL = "ephemeral"
-
-DATA_KEY_CAMPAIGN = "campaign"
 
 
 # TODO bot functions:
 # Any add loot
 # Did they level?
 # Set next level (plus set xp... might avoid having to build an xp table..)
-
-
-def create_client(project_id: str):
-    return datastore.Client(project_id)
 
 
 class Command:
@@ -189,19 +180,6 @@ def remove(metadata: QueryMetaData, aspect: Aspect, value: Any) -> Dict[str, str
         "response_type": MESSAGE_RESPONSE_CHANNEL,
         "text": f"Reduced {aspect.name} to {new_aspect_value}",
     }
-
-
-def get_campaign(datastore_client=None) -> Dict[str, Any]:
-    """
-    Gets the campaign from GCP Datastore.
-
-    param datastore_client: Optional datastore client to use, will create if none provided.
-    return: Dict containing the campaign data.
-    """
-    if not datastore_client:
-        datastore_client = create_client(PROJECT_ID)
-    campaign = datastore_client.get(Key(DATA_KEY_CAMPAIGN, "rotrl", project=PROJECT_ID))
-    return campaign
 
 
 # List of commands used to build out

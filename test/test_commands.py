@@ -1,19 +1,6 @@
 import pytest
 
-from symone_bot.commands import (
-    Command,
-    add,
-    create_client,
-    default_response,
-    help_message,
-)
-
-
-def test_create_client(mocker):
-    datastore_mock = mocker.patch("symone_bot.commands.datastore", autospec=True)
-    create_client("foo")
-
-    datastore_mock.Client.assert_called_once_with("foo")
+from symone_bot.commands import Command, add, default_response, help_message
 
 
 def test_command_raises_attribute_error_when_function_not_callable():
