@@ -8,11 +8,16 @@ from slack_bolt import App
 from slack_bolt.adapter.google_cloud_functions import SlackRequestHandler
 from werkzeug import Request
 
+import google.cloud.logging
+
 from symone_bot.aspects import aspect_list
 from symone_bot.commands import command_list
 from symone_bot.metadata import QueryMetaData
 from symone_bot.parser import QueryEvaluator
 from symone_bot.response import SymoneResponse
+
+client = google.cloud.logging.Client()
+client.setup_logging()
 
 logging.basicConfig(
     format="%(asctime)s\t%(levelname)s\t%(message)s",
@@ -64,6 +69,9 @@ def message_help(say):
 def aspect_query_handler(message, say, context):
     aspect_candidate = context["matches"][0]
     user_id = message.get("user")
+
+    logging.info(f"Parsing aspect query: {aspect_candidate} from user: {user_id}")
+
     response = symone_message(aspect_candidate, user_id)
     say(response)
 
@@ -83,7 +91,3 @@ def handler(request: Request):
     """
     slack_handler = SlackRequestHandler(app=app)
     return slack_handler.handle(request)
-
-
-if __name__ == '__main__':
-    app.start(port=3000)

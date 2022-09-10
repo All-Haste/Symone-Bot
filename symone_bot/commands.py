@@ -66,6 +66,7 @@ def help_message(metadata: QueryMetaData) -> dict:
 
 
 def add(metadata: QueryMetaData, aspect: Aspect, value: Any) -> Dict[str, str]:
+    logging.info(f"Add triggered by user: {metadata.user_id}")
     if metadata.user_id not in aspect.allowed_users:
         logging.warning(
             f"Unauthorized user attempted to execute add command on {aspect.name} Aspect."
