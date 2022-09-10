@@ -83,3 +83,7 @@ def handler(request: Request):
     """
     slack_handler = SlackRequestHandler(app=app)
     return slack_handler.handle(request)
+
+
+if __name__ == '__main__':
+    app.start(port=3000)
