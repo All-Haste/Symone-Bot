@@ -160,5 +160,10 @@ command_list: List[Command] = [
     Command("default", "", default_response),
     Command("help", "retrieves help info", help_message),
     Command("add", "adds a given value to a given aspect.", add, is_modifier=True),
-    Command("current", "retrieves the current value of a given aspect.", current),
+    Command(
+        "current",
+        "retrieves the current value of a given aspect.",
+        current,
+        is_modifier=False,
+    ),
 ]
