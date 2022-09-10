@@ -2,6 +2,7 @@ import logging
 import os
 from typing import Dict, Callable, List, Any
 from google.cloud import datastore
+from google.cloud.datastore import Key
 
 from symone_bot.aspects import Aspect
 from symone_bot.metadata import QueryMetaData
@@ -75,11 +76,7 @@ def add(metadata: QueryMetaData, aspect: Aspect, value: Any) -> Dict[str, str]:
         }
 
     datastore_client = create_client(PROJECT_ID)
-    query = datastore_client.query(kind=DATA_KEY_CAMPAIGN)
-    query.key_filter("rotrl")
-    campaign = list(query.fetch())[0]
-
-    logging.info(campaign)
+    campaign = datastore_client.get(Key(DATA_KEY_CAMPAIGN, "rotrl"))
 
     party_xp = campaign[aspect.name]
     new_xp = party_xp + value
