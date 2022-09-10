@@ -8,8 +8,6 @@ from slack_bolt import App
 from slack_bolt.adapter.google_cloud_functions import SlackRequestHandler
 from werkzeug import Request
 
-import google.cloud.logging
-
 from symone_bot.HandlerSource import HandlerSource
 from symone_bot.aspects import aspect_list
 from symone_bot.commands import command_list
@@ -17,8 +15,13 @@ from symone_bot.metadata import QueryMetaData
 from symone_bot.parser import QueryEvaluator
 from symone_bot.response import SymoneResponse
 
-client = google.cloud.logging.Client()
-client.setup_logging()
+DEPLOYMENT_ENVIRONMENT = os.environ.get("DEPLOYMENT_ENVIRONMENT", "local")
+
+if DEPLOYMENT_ENVIRONMENT == "prod":
+    import google.cloud.logging
+
+    client = google.cloud.logging.Client()
+    client.setup_logging()
 
 logging.basicConfig(
     format="%(asctime)s\t%(levelname)s\t%(message)s",
