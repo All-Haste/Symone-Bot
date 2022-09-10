@@ -10,6 +10,7 @@ from werkzeug import Request
 
 import google.cloud.logging
 
+from symone_bot.HandlerSource import HandlerSource
 from symone_bot.aspects import aspect_list
 from symone_bot.commands import command_list
 from symone_bot.metadata import QueryMetaData
@@ -27,24 +28,46 @@ logging.basicConfig(
 )
 
 
-def symone_message(input_text: str, user_id: str) -> Dict[str, str]:
+def symone_message(
+        input_text: str, user_id: str, handler_source: HandlerSource
+) -> Dict[str, str]:
+    """
+    This is the main function that is called when a message is received from Slack.
+    param input_text: text of the message
+    param user_id: id of the user who sent the message
+    param handler_source: event handler type that called this function
+    return: response sent to Slack
+    """
+    response = {
+        "response_type": "ephemeral",
+        "text": "Sorry, Slack told me your user ID is blank? That's weird. Please try again.",
+    }
     if user_id is None:
-        return {
-            "response_type": "ephemeral",
-            "text": "Sorry, Slack told me your user ID is blank? That's weird. Please try again.",
-        }
+        return response
 
+    metadata = QueryMetaData(user_id)
+
+    match handler_source:
+        case HandlerSource.HELP:
+            response = SymoneResponse(command_list[1], metadata)
+        case HandlerSource.ASPECT_QUERY:
+            response = run_aspect_query(input_text, metadata)
+
+    return response.get()
+
+
+def run_aspect_query(input_text, metadata):
+    """
+    Evaluates the input text as an aspect query and returns a SymoneResponse object..
+    """
     if not input_text:
         query = ""
     else:
         query = input_text.lower()
-
     evaluator = QueryEvaluator(command_list, aspect_list)
     response = evaluator.parse(query)
-    metadata = QueryMetaData(user_id)
     response.metadata = metadata
-
-    return response.get()
+    return response
 
 
 app = App(
@@ -56,23 +79,28 @@ app = App(
 
 @app.message(re.compile("(hi|hello|hey) Symone"))
 def message_hello(message, say, context):
+    """Responds to a user mentioning Symone."""
     say(f"{context['matches'][0]} there <@{message['user']}>")
 
 
-@app.message("What can you do Symone?")
-def message_help(say):
-    help_command = command_list[1]
-    say(SymoneResponse(help_command).get())
+@app.message(re.compile("(What|what) can you do Symone\?"))
+def message_help(message, say):
+    """Help message handler."""
+    response = symone_message(
+        message.get("text"), message.get("user"), HandlerSource.HELP
+    )
+    say(response)
 
 
 @app.message(re.compile("Symone, (.*)"))
 def aspect_query_handler(message, say, context):
+    """Aspect query handler. Listens for "Symone, <query>"."""
     aspect_candidate = context["matches"][0]
     user_id = message.get("user")
 
     logging.info(f"Parsing aspect query: {aspect_candidate} from user: {user_id}")
 
-    response = symone_message(aspect_candidate, user_id)
+    response = symone_message(aspect_candidate, user_id, HandlerSource.ASPECT_QUERY)
     say(response)
 
 
@@ -85,7 +113,9 @@ def custom_error_handler(error, body, logger):
 def handler(request: Request):
     """
     This is the handler function that is called when an event is
-    received from Slack.
+    received from Slack. This is needed to handle Slack inputs for Google Cloud Functions.
+    Typically, a slack bot would use the app.start() function to start the server, but for
+    cloud functions, SlackRequestHandler is used instead.
     param request: inbound request
     return: response sent to Slack
     """
