@@ -1,7 +1,3 @@
-from unittest.mock import MagicMock
-
-from flask import Request
-
 from main import symone_message
 from symone_bot.commands import MESSAGE_RESPONSE_EPHEMERAL
 from symone_bot.HandlerSource import HandlerSource

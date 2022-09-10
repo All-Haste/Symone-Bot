@@ -32,7 +32,7 @@ logging.basicConfig(
 
 
 def symone_message(
-        input_text: str, user_id: str, handler_source: HandlerSource
+    input_text: str, user_id: str, handler_source: HandlerSource
 ) -> Dict[str, str]:
     """
     This is the main function that is called when a message is received from Slack.
