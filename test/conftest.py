@@ -12,7 +12,7 @@ def test_metadata():
 
 @pytest.fixture
 def test_commands():
-    return [Command("foo", "does foo stuff", lambda: 1 + 1)]
+    return [Command("foo", "does foo stuff", lambda: 1 + 1, is_modifier=True)]
 
 
 @pytest.fixture

@@ -31,7 +31,7 @@ class SymoneResponse:
         self.aspect = aspect
         if self.command.is_modifier:
             self.check_modifier_command_attributes(self.aspect, value)
-        else:
+        elif not self.command.is_modifier and command.name != "default":
             if value is not None:
                 raise AttributeError("Cannot have a value for a non-modifier command.")
         self.value = value

@@ -1,7 +1,7 @@
 import pytest
 from flask import Response
 
-from symone_bot.aspects import Aspect
+from symone_bot.aspects import Aspect, aspect_list
 from symone_bot.commands import Command, command_list, current
 from symone_bot.metadata import QueryMetaData
 from symone_bot.response import SymoneResponse
@@ -22,20 +22,12 @@ def test_init_rejects_incorrect_aspect_value(aspect_type, value):
         )
 
 
-def test_get_happy_path():
-    response = SymoneResponse(Command("foo", "", lambda x: 1 + 1), value=1)
-
-    result = response.get()
-
-    assert result == 2
-
-
 def test_get_with_value():
     def sub_func(metadata, aspect, value):
         return Response(value, 200)
 
     response = SymoneResponse(
-        Command("foo", "", sub_func),
+        Command("foo", "", sub_func, is_modifier=True),
         aspect=Aspect("bar", "", value_type=str),
         value="test",
     )
