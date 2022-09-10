@@ -3,7 +3,8 @@
 PYTHON?=python3
 
 test:
-	$(PYTHON) -m pytest
+	$(PYTHON) -m pytest $(CURDIR) --cov=$(CURDIR) --cov-report xml
+	coverage report --fail-under=99
 
 format:
 	$(PYTHON) -m black .
