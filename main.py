@@ -28,7 +28,7 @@ def symone_message(slack_data: dict) -> Dict[str, str]:
     if not input_text:
         query = ""
     else:
-        query = input_text.lower().replace("+", " ")
+        query = input_text.lower()
 
     evaluator = QueryEvaluator(command_list, aspect_list)
     response = evaluator.parse(query)
@@ -36,22 +36,6 @@ def symone_message(slack_data: dict) -> Dict[str, str]:
     response.metadata = metadata
 
     return response.get()
-
-
-def parse_slack_data(request_body: bytes) -> Dict[str, str]:
-    """
-    Parses the body data of a request sent from Slack and
-    returns it as a dictionary.
-    :param request_body: bytes string from request body.
-    :return: Dictionary
-    """
-    data_string = request_body.decode("utf-8")
-    pairs = data_string.split("&")
-    data = {}
-    for pair in pairs:
-        key_value = pair.split("=")
-        data[key_value[0]] = key_value[1]
-    return data
 
 
 app = App(
@@ -73,7 +57,8 @@ def message_help(say):
 
 @app.message(re.compile("Symone, (.*)"))
 def aspect_query_handler(message, say):
-    say(f"I got: \"{message}\"")
+    response = symone_message(message)
+    say(response)
 
 
 def handler(request: Request):
