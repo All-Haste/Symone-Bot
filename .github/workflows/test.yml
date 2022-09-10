@@ -21,7 +21,7 @@ jobs:
       - run: pip install -r requirements-test.txt
         if: steps.cache-virtualenv.outputs.cache-hit != 'true'
 
-      - run: pip install flake8 black isort
+      - run: pip install flake8 black
         if: steps.cache-virtualenv.outputs.cache-hit != 'true'
 
   linter:
@@ -35,7 +35,6 @@ jobs:
         id: cache-virtualenv
 
       - run: flake8 --max-line-length=127 --ignore=E203,W503 --exclude=venv
-      - run: isort . --diff --check-only
       - run: black --check --diff .
 
   tests:
