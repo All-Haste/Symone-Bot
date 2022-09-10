@@ -95,6 +95,16 @@ def message_help(message, say):
     say(response)
 
 
+@app.message(
+    re.compile("(did|Did) we (level up\\?|level up|levelup\\?|levelup|level\\?|level)")
+)
+def message_did_they_level_up(message, say):
+    """Responds to a user asking if they leveled up."""
+    original_text = message.get("text")
+    "".join([x.upper() if i % 2 else x.lower() for i, x in enumerate(original_text)])
+    say(":spongebob-mocking:")
+
+
 @app.message(re.compile("Symone, (.*)"))
 def aspect_query_handler(message, say, context):
     """Aspect query handler. Listens for "Symone, <query>"."""
