@@ -30,6 +30,14 @@ def test_parse(query_evaluator):
     assert response.value == 3
 
 
+def test_parse_with_negative_number(query_evaluator):
+    response = query_evaluator.parse("foo bar -3")
+
+    assert response.command.name == "foo"
+    assert response.aspect.name == "bar"
+    assert response.value == -3
+
+
 @pytest.mark.parametrize("query", ["bar foo 3", "3 bar foo", "3 foo", "bar", "3"])
 def test_parse_throws_error_if_command_is_not_first(query, query_evaluator):
     with pytest.raises(SyntaxError):
@@ -41,7 +49,7 @@ def test__get_master_pattern(query_evaluator):
 
     assert type(pattern) == re.Pattern
     assert pattern == re.compile(
-        "(?P<CMD>\\bfoo\\b)|(?P<ASPECT>\\bbar\\b)|(?P<NUM>\\d+)|(?P<WS>\\s+)"
+        "(?P<CMD>\\bfoo\\b)|(?P<ASPECT>\\bbar\\b)|(?P<NUM>(-|)\\d+)|(?P<WS>\\s+)"
     )
 
 

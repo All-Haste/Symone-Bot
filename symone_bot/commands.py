@@ -120,16 +120,16 @@ def add(metadata: QueryMetaData, aspect: Aspect, value: Any) -> Dict[str, str]:
     datastore_client = create_client(PROJECT_ID)
     campaign = get_campaign()
 
-    party_xp = campaign[aspect.name]
-    new_xp = party_xp + value
-    campaign[aspect.name] = new_xp
+    current_aspect_value = campaign[aspect.name]
+    new_aspect_value = current_aspect_value + value
+    campaign[aspect.name] = new_aspect_value
     datastore_client.put(campaign)
 
-    logging.info(f"Updated {aspect.name} to {new_xp}")
+    logging.info(f"Updated {aspect.name} to {new_aspect_value}")
 
     return {
         "response_type": MESSAGE_RESPONSE_CHANNEL,
-        "text": f"Updated {aspect.name} to {new_xp}",
+        "text": f"Updated {aspect.name} to {new_aspect_value}",
     }
 
 
@@ -146,6 +146,48 @@ def current(metadata: QueryMetaData, aspect: Aspect) -> Dict[str, str]:
     return {
         "response_type": MESSAGE_RESPONSE_CHANNEL,
         "text": f"{aspect.name} is currently {campaign[aspect.name]}",
+    }
+
+
+# remove and add can probably be combined to the same core command, with a switch for +/-
+def remove(metadata: QueryMetaData, aspect: Aspect, value: Any) -> Dict[str, str]:
+    """
+    Removes the value from the aspect value stored in GCP Datastore
+
+    param metadata: QueryMetaData object containing the metadata for the request.
+    param aspect: Aspect object containing the aspect to be modified.
+    param value: Value to be removed from the aspect.
+    return: dict containing the response to be sent to Slack.
+    """
+    logging.info(f"Remove triggered by user: {metadata.user_id}")
+    if metadata.user_id not in aspect.allowed_users:
+        logging.warning(
+            f"Unauthorized user attempted to execute remove command on {aspect.name} Aspect."
+        )
+        return {
+            "response_type": MESSAGE_RESPONSE_CHANNEL,
+            "text": "Nice try...",
+        }
+
+    if aspect.is_singleton:
+        return {
+            "response_type": MESSAGE_RESPONSE_CHANNEL,
+            "text": f"{aspect.name} is a singleton aspect, you can't remove from it.",
+        }
+
+    datastore_client = create_client(PROJECT_ID)
+    campaign = get_campaign()
+
+    current_aspect_value = campaign[aspect.name]
+    new_aspect_value = current_aspect_value - value
+    campaign[aspect.name] = new_aspect_value
+    datastore_client.put(campaign)
+
+    logging.info(f"Updated {aspect.name} to {new_aspect_value}")
+
+    return {
+        "response_type": MESSAGE_RESPONSE_CHANNEL,
+        "text": f"Reduced {aspect.name} to {new_aspect_value}",
     }
 
 
@@ -173,4 +215,5 @@ command_list: List[Command] = [
         current,
         is_modifier=False,
     ),
+    Command('remove', 'removes a given value from a given aspect.', remove, is_modifier=True),
 ]

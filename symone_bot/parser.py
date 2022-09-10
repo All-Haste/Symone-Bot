@@ -97,7 +97,7 @@ class QueryEvaluator:
         aspect_match = "|".join(aspects)
         cmd = r"(?P<CMD>{})".format(command_match)
         aspect = r"(?P<ASPECT>{})".format(aspect_match)
-        num = r"(?P<NUM>\d+)"
+        num = r"(?P<NUM>(-|)\d+)"
         ws = r"(?P<WS>\s+)"
 
         pattern = re.compile("|".join([cmd, aspect, num, ws]))
