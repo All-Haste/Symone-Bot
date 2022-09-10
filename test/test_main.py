@@ -7,7 +7,7 @@ from symone_bot.commands import MESSAGE_RESPONSE_EPHEMERAL
 
 
 def test_symone_message():
-    test_input = {"text": "foo+bar+baz", "user_id": "foo"}
+    test_input = {"text": "foo+bar+baz", "user": "foo"}
 
     expected = {
         "response_type": MESSAGE_RESPONSE_EPHEMERAL,
@@ -23,7 +23,7 @@ def test_symone_message_blank_input():
 
     expected = {
         "response_type": MESSAGE_RESPONSE_EPHEMERAL,
-        "text": "I am Symone Bot. I keep track of party gold, XP, and loot. Type `/symone help` to see what I can do.",
+        "text": "Sorry, Slack told me your user ID is blank? That's weird. Please try again.",
     }
     actual = symone_message(test_input)
     assert actual["response_type"] == expected["response_type"]

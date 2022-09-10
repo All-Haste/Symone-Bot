@@ -67,6 +67,12 @@ def aspect_query_handler(message, say):
     say(response)
 
 
+@app.error
+def custom_error_handler(error, body, logger):
+    logger.exception(f"Error: {error}")
+    logger.info(f"Request body: {body}")
+
+
 def handler(request: Request):
     """
     This is the handler function that is called when an event is
