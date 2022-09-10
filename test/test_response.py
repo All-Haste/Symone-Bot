@@ -1,7 +1,7 @@
 import pytest
 from flask import Response
 
-from symone_bot.aspects import Aspect
+from symone_bot.aspects import Aspect, aspect_list
 from symone_bot.commands import Command, command_list, current
 from symone_bot.metadata import QueryMetaData
 from symone_bot.response import SymoneResponse
@@ -59,13 +59,28 @@ def test_reject_non_modifier_commands_with_values():
         )
 
 
-def test_create_response_with_current_command():
+def test_create_response_with_non_modifier_command():
     def sub_func(metadata, aspect):
         return Response()
 
     metadata = QueryMetaData("foo")
     response = SymoneResponse(
         Command("current", "", sub_func), metadata, aspect=Aspect("bar", "")
+    )
+
+    result = response.get()
+    expected = Response()
+    assert result.status_code == expected.status_code
+    assert result.data == expected.data
+
+
+def test_create_response_with_current_command():
+    def sub_func(metadata, aspect):
+        return Response()
+
+    metadata = QueryMetaData("foo")
+    response = SymoneResponse(
+        Command("current", "get current", sub_func), metadata, aspect_list[0], None
     )
 
     result = response.get()

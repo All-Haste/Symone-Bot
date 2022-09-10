@@ -59,10 +59,10 @@ class SymoneResponse:
 
         :return: Dictionary representing a Slack message.
         """
-        if self.aspect is not None and self.aspect.value_type is not None:
+        if self.command.is_modifier:
             # execute command on aspect with value
             return self.command.callable(self.metadata, self.aspect, self.value)
-        elif self.aspect is not None and self.aspect.value_type is None:
+        elif self.aspect is not None:
             # execute command on aspect (has no value)
             return self.command.callable(self.metadata, self.aspect)
         else:

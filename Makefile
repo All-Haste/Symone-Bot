@@ -1,4 +1,4 @@
-.PHONY: test format fmt lint
+.PHONY: test format fmt lint coverage-report check
 
 PYTHON?=python3
 
@@ -17,3 +17,5 @@ lint:
 
 coverage-report:
 	$(PYTHON) -m pytest . --cov=$(CURDIR) --cov-report html
+
+check: format lint test
