@@ -24,17 +24,6 @@ class SymoneResponse:
         self.metadata = metadata
         self.command = command
         self.aspect = aspect
-        if self.aspect is not None:
-            if self.aspect.value_type is None and value is not None:
-                raise AttributeError(
-                    f"Aspect value type ({self.aspect.value_type}) does not match supplied type ({type(value)})"
-                )
-            if self.aspect.value_type is not None and not isinstance(
-                value, self.aspect.value_type
-            ):
-                raise AttributeError(
-                    f"Aspect value type ({self.aspect.value_type}) does not match supplied type ({type(value)})"
-                )
         self.value = value
 
     def get(self) -> Dict[str, str]:
