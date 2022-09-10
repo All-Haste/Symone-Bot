@@ -29,14 +29,14 @@ def get_campaign(datastore_client=None) -> Dict[str, Any]:
     """
     if not datastore_client:
         datastore_client = create_client(PROJECT_ID)
-    current_campaign_id = get_current_campaign(datastore_client)
+    current_campaign_id = get_current_campaign_id(datastore_client)
     campaign = datastore_client.get(
         Key(DATA_KEY_CAMPAIGN, current_campaign_id, project=PROJECT_ID)
     )
     return campaign
 
 
-def get_current_campaign(datastore_client=None) -> str:
+def get_current_campaign_id(datastore_client=None) -> str:
     """
     Gets the ID for the current campaign from GCP Datastore.
 
@@ -48,4 +48,4 @@ def get_current_campaign(datastore_client=None) -> str:
     campaign = datastore_client.get(
         Key(DATA_KEY_CURRENT_CAMPAIGN, CURRENT_CAMPAIGN_ENTITY_ID, project=PROJECT_ID)
     )
-    return campaign
+    return campaign["campaign_id"]
