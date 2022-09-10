@@ -47,7 +47,7 @@ def default_response(metadata: QueryMetaData) -> dict:
     logging.info(f"Default response triggered by user: {metadata.user_id}")
     return {
         "response_type": MESSAGE_RESPONSE_EPHEMERAL,
-        "text": "I am Symone Bot. I keep track of party gold, XP, and loot. Type `/symone help` to see what I can do.",
+        "text": "I'm sorry, I don't understand.",
     }
 
 

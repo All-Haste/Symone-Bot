@@ -30,10 +30,7 @@ def test_command_help():
 def test_default_response(test_metadata):
     actual = default_response(test_metadata)
     assert actual["response_type"] == "ephemeral"
-    assert (
-        actual["text"]
-        == "I am Symone Bot. I keep track of party gold, XP, and loot. Type `/symone help` to see what I can do."
-    )
+    assert actual["text"] == "I'm sorry, I don't understand."
 
 
 def test_help_message(test_metadata, test_commands):

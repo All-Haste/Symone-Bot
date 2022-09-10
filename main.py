@@ -21,10 +21,7 @@ logging.basicConfig(
 )
 
 
-def symone_message(slack_data: dict) -> Dict[str, str]:
-    input_text = slack_data.get("text")
-    user_id = slack_data.get("user")
-
+def symone_message(input_text: str, user_id: str) -> Dict[str, str]:
     if user_id is None:
         return {
             "response_type": "ephemeral",
@@ -62,8 +59,10 @@ def message_help(say):
 
 
 @app.message(re.compile("Symone, (.*)"))
-def aspect_query_handler(message, say):
-    response = symone_message(message)
+def aspect_query_handler(message, say, context):
+    aspect_candidate = context["matches"][0]
+    user_id = message.get("user")
+    response = symone_message(aspect_candidate, user_id)
     say(response)
 
 
