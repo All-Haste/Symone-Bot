@@ -83,7 +83,7 @@ def message_hello(message, say, context):
     say(f"{context['matches'][0]} there <@{message['user']}>")
 
 
-@app.message(re.compile("(What|what) can you do Symone\?"))
+@app.message(re.compile("(What|what) can you do Symone\\?"))
 def message_help(message, say):
     """Help message handler."""
     response = symone_message(
