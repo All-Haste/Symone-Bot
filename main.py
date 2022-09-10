@@ -3,9 +3,7 @@ import logging
 import sys
 from typing import Dict
 
-from flask import jsonify, Request, Response
 from slack_bolt import App
-from slack_sdk.signature import SignatureVerifier
 
 from symone_bot.aspects import aspect_list
 from symone_bot.commands import command_list
@@ -18,17 +16,6 @@ logging.basicConfig(
     stream=sys.stdout,
     level=logging.DEBUG,
 )
-
-
-def verify_signature(request: Request):
-    logging.info("Verifying signature of Slack secret.")
-    request.get_data()  # Decodes received requests into request.data
-
-    verifier = SignatureVerifier(os.environ["SLACK_SECRET"])
-
-    if not verifier.is_valid_request(request.data, request.headers):
-        logging.warning("Provided secret failed verification.")
-        return Response("Unauthorized", status=401)
 
 
 def symone_message(slack_data: dict) -> Dict[str, str]:
@@ -64,23 +51,6 @@ def parse_slack_data(request_body: bytes) -> Dict[str, str]:
     return data
 
 
-def symone_bot(request: Request) -> Response:
-    """
-    Primary point of ingress for the bot.
-    :param request: inbound request. Note GCP function provides this as a Flask request.
-    :return: Flask formatted response.
-    """
-    if request.method != "POST":
-        return Response("Only POST requests are accepted", status=405)
-
-    verify_signature(request)
-
-    slack_data = parse_slack_data(request.data)
-
-    response_message = symone_message(slack_data)
-    return jsonify(response_message)
-
-
 app = App(
     token=os.environ.get("SLACK_BOT_TOKEN"),
     signing_secret=os.environ.get("SLACK_SIGNING_SECRET"),
@@ -93,4 +63,4 @@ def message_hello(message, say):
 
 
 if __name__ == "__main__":
-    app.start(port=int(os.environ.get("PORT", 3000)))
+    app.start(port=int(os.environ.get("PORT", 5000)))
