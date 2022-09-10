@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
 from symone_bot.aspects import Aspect
-from symone_bot.commands import Command
+from symone_bot.commands import Command, command_list
 from symone_bot.metadata import QueryMetaData
 
 
@@ -24,12 +24,25 @@ class SymoneResponse:
         self.metadata = metadata
         self.command = command
         self.aspect = aspect
+        if self.command in [
+            command_list[2]
+        ]:  # TODO this is terrible, migrate these lists to dictionaries
+            if self.aspect.value_type is None and value is not None:
+                raise AttributeError(
+                    f"Aspect value type ({self.aspect.value_type}) does not match supplied type ({type(value)})"
+                )
+            if self.aspect.value_type is not None and not isinstance(
+                value, self.aspect.value_type
+            ):
+                raise AttributeError(
+                    f"Aspect value type ({self.aspect.value_type}) does not match supplied type ({type(value)})"
+                )
         self.value = value
 
     def get(self) -> Dict[str, str]:
         """
         Executes the response's stored Command callable.
-        :return: Dictionary representing a slack message.
+        :return: Dictionary representing a Slack message.
         """
         if self.aspect is not None and self.aspect.value_type is not None:
             # execute command on aspect with value

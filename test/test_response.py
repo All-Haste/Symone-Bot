@@ -2,7 +2,7 @@ import pytest
 from flask import Response
 
 from symone_bot.aspects import Aspect
-from symone_bot.commands import Command
+from symone_bot.commands import Command, command_list
 from symone_bot.response import SymoneResponse
 
 
@@ -15,7 +15,7 @@ def test_init_rejects_nonetype_command():
 def test_init_rejects_incorrect_aspect_value(aspect_type, value):
     with pytest.raises(AttributeError):
         SymoneResponse(
-            Command("foo", "", lambda: Response()),
+            command_list[2],
             aspect=Aspect("bar", "", value_type=aspect_type),
             value=value,
         )
