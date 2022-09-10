@@ -5,7 +5,7 @@ from typing import Any, Callable, Dict, List
 from google.cloud import datastore
 from google.cloud.datastore import Key
 
-from symone_bot.aspects import Aspect
+from symone_bot.aspects import Aspect, aspect_list
 from symone_bot.metadata import QueryMetaData
 
 GAME_MASTER = os.getenv("GAME_MASTER")
@@ -85,6 +85,7 @@ def help_message(metadata: QueryMetaData) -> dict:
     for command in command_list:
         if not command.callable == default_response:
             text += f"{command.help()}\n"
+    text += f"\nI am also tracking the following aspects: {', '.join([aspect.name for aspect in aspect_list])}"
     return {
         "response_type": MESSAGE_RESPONSE_EPHEMERAL,
         "text": text,
