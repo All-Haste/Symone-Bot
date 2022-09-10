@@ -36,7 +36,7 @@ def get_campaign(datastore_client=None) -> Dict[str, Any]:
     return campaign
 
 
-def get_current_campaign_id(datastore_client=None) -> str:
+def get_current_campaign_id(datastore_client=None, project_id=PROJECT_ID) -> str:
     """
     Gets the ID for the current campaign from GCP Datastore.
 
@@ -44,8 +44,12 @@ def get_current_campaign_id(datastore_client=None) -> str:
     return: Dict containing the campaign data.
     """
     if not datastore_client:
-        datastore_client = create_client(PROJECT_ID)
-    campaign = datastore_client.get(
-        Key(DATA_KEY_CURRENT_CAMPAIGN, CURRENT_CAMPAIGN_ENTITY_ID, project=PROJECT_ID)
-    )
-    return campaign["campaign_id"]
+        datastore_client = create_client(project_id)
+    try:
+        current_campaign = list(
+            datastore_client.query(kind=DATA_KEY_CURRENT_CAMPAIGN).fetch()
+        )[0]
+    except IndexError:
+        raise Exception("No current campaign set.")
+
+    return current_campaign["campaign_id"]
