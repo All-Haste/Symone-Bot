@@ -102,7 +102,7 @@ def message_did_they_level_up(message, say):
     """Responds to a user asking if they leveled up."""
     original_text = message.get("text")
     "".join([x.upper() if i % 2 else x.lower() for i, x in enumerate(original_text)])
-    say(f"\"{original_text}\" :spongebob-mocking:")
+    say(f'"{original_text}" :spongebob-mocking:')
 
 
 @app.message(re.compile("Symone, (.*)"))
