@@ -17,7 +17,6 @@ DATA_KEY_CAMPAIGN = "campaign"
 
 
 # TODO bot functions:
-# GM add gold
 # Any add loot
 # Did they level?
 # Set next level (plus set xp... might avoid having to build an xp table..)
@@ -32,11 +31,12 @@ class Command:
     Wrapper around a callable that returns a Flask Response object.
     This wrapper exists to add metadata to the callable.
 
-    param name: The name of the command.
-    param help_info: Help info for the command. Usually just a simple string.
-    param function: The callable to wrap.
-    param aspect_type: The type of aspect to use for this command.
-    param is_modifier: Whether  this command is a modifier.
+    Attributes:
+        name: Name of the command.
+        help_info: Help information for the command.
+        function: Callable to be wrapped.
+        aspect_type: Aspect type that the command is associated with.
+        is_modifier: Whether the command is a modifier.
     """
 
     def __init__(
@@ -60,6 +60,12 @@ class Command:
 
 
 def default_response(metadata: QueryMetaData) -> dict:
+    """
+    Default response for when a command is not recognized.
+
+    param metadata: QueryMetaData object containing the metadata for the request.
+    return: dict containing the response to be sent to Slack.
+    """
     logging.info(f"Default response triggered by user: {metadata.user_id}")
     return {
         "response_type": MESSAGE_RESPONSE_EPHEMERAL,
@@ -68,7 +74,12 @@ def default_response(metadata: QueryMetaData) -> dict:
 
 
 def help_message(metadata: QueryMetaData) -> dict:
-    """Auto generates help message by gathering the help info from each SymoneCommand."""
+    """
+    Auto generates help message by gathering the help info from each SymoneCommand.
+
+    param metadata: QueryMetaData object containing the metadata for the request.
+    return: dict containing the response to be sent to Slack.
+    """
     logging.info(f"Default response triggered by user: {metadata.user_id}")
     text = """"""
     for command in command_list:
@@ -81,6 +92,14 @@ def help_message(metadata: QueryMetaData) -> dict:
 
 
 def add(metadata: QueryMetaData, aspect: Aspect, value: Any) -> Dict[str, str]:
+    """
+    Adds the value to the aspect value stored in GCP Datastore
+
+    param metadata: QueryMetaData object containing the metadata for the request.
+    param aspect: Aspect object containing the aspect to be modified.
+    param value: Value to be added to the aspect.
+    return: dict containing the response to be sent to Slack.
+    """
     logging.info(f"Add triggered by user: {metadata.user_id}")
     if metadata.user_id not in aspect.allowed_users:
         logging.warning(
@@ -108,7 +127,12 @@ def add(metadata: QueryMetaData, aspect: Aspect, value: Any) -> Dict[str, str]:
 
 
 def current(metadata: QueryMetaData, aspect: Aspect) -> Dict[str, str]:
-    """Gets the current aspect value stored in GCP Datastore"""
+    """
+    Gets the current aspect value stored in GCP Datastore
+
+    param metadata: QueryMetaData object containing the metadata for the request.
+    param aspect: Aspect object containing the aspect to be modified.
+    """
     logging.info(f"Current triggered by user: {metadata.user_id}")
     campaign = get_campaign()
 
@@ -119,6 +143,12 @@ def current(metadata: QueryMetaData, aspect: Aspect) -> Dict[str, str]:
 
 
 def get_campaign(datastore_client=None) -> Dict[str, Any]:
+    """
+    Gets the campaign from GCP Datastore.
+
+    param datastore_client: Optional datastore client to use, will create if none provided.
+    return: Dict containing the campaign data.
+    """
     if not datastore_client:
         datastore_client = create_client(PROJECT_ID)
     campaign = datastore_client.get(Key(DATA_KEY_CAMPAIGN, "rotrl", project=PROJECT_ID))

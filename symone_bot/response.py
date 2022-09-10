@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
 from symone_bot.aspects import Aspect
-from symone_bot.commands import Command, command_list
+from symone_bot.commands import Command
 from symone_bot.metadata import QueryMetaData
 
 
@@ -10,6 +10,11 @@ class SymoneResponse:
     Object encapsulating a command, aspect, and value (where applicable).
     SymoneResponse is meant to be the final piece that can create the data
     needed for the bot to respond to the user.
+
+    Attributes:
+        command: Command object representing the command to be executed.
+        aspect: Aspect object representing the aspect to be modified or fetched.
+        value: Value to be used in modifying the aspect.
     """
 
     def __init__(
@@ -30,6 +35,12 @@ class SymoneResponse:
 
     @staticmethod
     def check_modifier_command_attributes(aspect, value):
+        """
+        Checks that the aspect and value are valid for a modifier command.
+
+        param aspect: Aspect object.
+        param value: Value to be set for the aspect.
+        """
         if aspect.value_type is None and value is not None:
             raise AttributeError(
                 f"Aspect value type ({aspect.value_type}) does not match supplied type ({type(value)})"
@@ -42,6 +53,7 @@ class SymoneResponse:
     def get(self) -> Dict[str, str]:
         """
         Executes the response's stored Command callable.
+
         :return: Dictionary representing a Slack message.
         """
         if self.aspect is not None and self.aspect.value_type is not None:
