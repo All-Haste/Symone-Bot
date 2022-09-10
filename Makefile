@@ -8,6 +8,7 @@ test:
 
 format:
 	$(PYTHON) -m black .
+	$(PYTHON) -m isort .
 
 fmt: format
 

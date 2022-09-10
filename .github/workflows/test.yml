@@ -1,9 +1,8 @@
-name: Test
+name: CI
 
 on: [ push, pull_request ]
 
 jobs:
-
   create-virtualenv:
     environment: Test Run
     runs-on: ubuntu-latest
@@ -35,7 +34,7 @@ jobs:
       - uses: syphar/restore-virtualenv@v1
         id: cache-virtualenv
 
-      - run: flake8
+      - run: flake8 --max-line-length=127 --ignore=E203,W503 --exclude=venv
       - run: isort . --diff --check-only
       - run: black --check --diff .
 
