@@ -78,7 +78,7 @@ def add(metadata: QueryMetaData, aspect: Aspect, value: Any) -> Dict[str, str]:
         }
 
     datastore_client = create_client(PROJECT_ID)
-    campaign = datastore_client.get(Key(DATA_KEY_CAMPAIGN, "rotrl", project=PROJECT_ID))
+    campaign = get_campaign()
 
     party_xp = campaign[aspect.name]
     new_xp = party_xp + value
@@ -93,9 +93,28 @@ def add(metadata: QueryMetaData, aspect: Aspect, value: Any) -> Dict[str, str]:
     }
 
 
+def current(metadata: QueryMetaData, aspect: Aspect) -> Dict[str, str]:
+    """Gets the current aspect value stored in GCP Datastore"""
+    logging.info(f"Current triggered by user: {metadata.user_id}")
+    campaign = get_campaign()
+
+    return {
+        "response_type": MESSAGE_RESPONSE_CHANNEL,
+        "text": f"{aspect.name} is currently {campaign[aspect.name]}",
+    }
+
+
+def get_campaign(datastore_client=None) -> Dict[str, Any]:
+    if not datastore_client:
+        datastore_client = create_client(PROJECT_ID)
+    campaign = datastore_client.get(Key(DATA_KEY_CAMPAIGN, "rotrl", project=PROJECT_ID))
+    return campaign
+
+
 # List of commands used to build out
 command_list: List[Command] = [
     Command("default", "", default_response),
     Command("help", "retrieves help info", help_message),
     Command("add", "adds a given value to a given aspect.", add),
+    Command("current", "retrieves the current value of a given aspect.", current),
 ]
