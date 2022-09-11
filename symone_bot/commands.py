@@ -208,7 +208,7 @@ def switch_campaign(metadata: QueryMetaData, campaign_name: str) -> Dict[str, st
             "text": f"Could not find campaign {campaign_name}. FYI, I'm case-sensitive.",
         }
     current_campaign = get_current_campaign_id_entity()
-    current_campaign["campaign_id"] = campaign_name
+    current_campaign["campaign_id"] = results[0].key.id
     datastore_client.put(current_campaign)
 
     logging.info(f"Current campaign set to {campaign_name}")
