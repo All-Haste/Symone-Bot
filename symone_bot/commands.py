@@ -233,10 +233,4 @@ command_list: List[Command] = [
     Command(
         "remove", "removes a given value from a given aspect.", remove, is_modifier=True
     ),
-    Command(
-        "switch_campaign",
-        "switches the current campaign.",
-        switch_campaign,
-        is_modifier=True,
-    ),
 ]

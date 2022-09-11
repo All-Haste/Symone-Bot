@@ -10,7 +10,7 @@ from slack_bolt.adapter.google_cloud_functions import SlackRequestHandler
 from werkzeug import Request
 
 from symone_bot.aspects import aspect_list
-from symone_bot.commands import command_list
+from symone_bot.commands import command_list, switch_campaign
 from symone_bot.handler_source import HandlerSource
 from symone_bot.metadata import QueryMetaData
 from symone_bot.parser import QueryEvaluator
@@ -121,6 +121,14 @@ def mocking_spongebob_reply(message):
     )
     reply = f':spongebob-mocking: "{mocking_text}" :spongebob-mocking:'
     return reply
+
+
+@app.message(re.compile('Symone, switch campaign to "(.*)"'))
+def switch_campaign_message(message, say, context):
+    """Switches the campaign to the one specified."""
+    campaign_name = context["matches"][0]
+    response = switch_campaign(QueryMetaData(message.get("user")), campaign_name)
+    say(response)
 
 
 @app.message(re.compile("Symone, (.*)"))
