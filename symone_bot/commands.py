@@ -160,7 +160,8 @@ def remove(metadata: QueryMetaData, aspect: Aspect, value: Any) -> Dict[str, str
     return: dict containing the response to be sent to Slack.
     """
     logging.info(f"Remove triggered by user: {metadata.user_id}")
-    if metadata.user_id not in aspect.allowed_users:
+    datastore_client = create_client(PROJECT_ID)
+    if metadata.user_id != get_game_master(datastore_client):
         logging.warning(
             f"Unauthorized user attempted to execute remove command on {aspect.name} Aspect."
         )
@@ -175,8 +176,7 @@ def remove(metadata: QueryMetaData, aspect: Aspect, value: Any) -> Dict[str, str
             "text": f"{aspect.name} is a singleton aspect, you can't remove from it.",
         }
 
-    datastore_client = create_client(PROJECT_ID)
-    campaign = get_campaign()
+    campaign = get_campaign(datastore_client)
 
     current_aspect_value = campaign[aspect.name]
     new_aspect_value = current_aspect_value - value
