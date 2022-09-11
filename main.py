@@ -10,7 +10,11 @@ from slack_bolt.adapter.google_cloud_functions import SlackRequestHandler
 from werkzeug import Request
 
 from symone_bot.aspects import aspect_list
-from symone_bot.commands import command_list, switch_campaign
+from symone_bot.commands import (
+    MESSAGE_RESPONSE_EPHEMERAL,
+    command_list,
+    switch_campaign,
+)
 from symone_bot.handler_source import HandlerSource
 from symone_bot.metadata import QueryMetaData
 from symone_bot.parser import QueryEvaluator
@@ -123,31 +127,34 @@ def mocking_spongebob_reply(message):
     return reply
 
 
-@app.message(re.compile('Symone, switch campaign to "(.*)"'))
-def switch_campaign_message(message, say, context):
-    """Switches the campaign to the one specified."""
-    campaign_name = context["matches"][0]
-    response = switch_campaign(QueryMetaData(message.get("user")), campaign_name)
-    say(response)
-
-
 @app.message(re.compile("Symone, (.*)"))
 def aspect_query_handler(message, say, context):
     """Aspect query handler. Listens for "Symone, <query>"."""
+    switch_matcher = re.compile('switch campaign to "(.*)"')
     aspect_candidate = context["matches"][0]
     user_id = message.get("user")
 
-    logging.info(f"Parsing aspect query: {aspect_candidate} from user: {user_id}")
-
-    response = symone_message(aspect_candidate, user_id, HandlerSource.ASPECT_QUERY)
-    say(response)
+    matches = switch_matcher.match(aspect_candidate)
+    if matches:
+        logging.info(f"Switching campaign to {matches[1]}")
+        response = switch_campaign(QueryMetaData(message.get("user")), matches[1])
+        say(response)
+    else:
+        logging.info(f"Parsing aspect query: {aspect_candidate} from user: {user_id}")
+        response = symone_message(aspect_candidate, user_id, HandlerSource.ASPECT_QUERY)
+        say(response)
 
 
 @app.error
 def custom_error_handler(error, body, logger, say):
     logger.exception(f"Error: {error}")
     logger.info(f"Request body: {body}")
-    say("Sorry, something went wrong. Please try again.")
+    say(
+        {
+            "response_type": MESSAGE_RESPONSE_EPHEMERAL,
+            "text": "Sorry, something went wrong. Please try again.",
+        }
+    )
 
 
 def handler(request: Request):
