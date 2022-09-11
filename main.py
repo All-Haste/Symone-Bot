@@ -134,15 +134,13 @@ def aspect_query_handler(message, say, context):
     """Aspect query handler. Listens for "Symone, <query>"."""
     switch_matcher = re.compile('switch campaign to "(.*)"')
     aspect_candidate = context["matches"][0]
-    logging.info(f"Aspect candidate: {aspect_candidate}")
     user_id = message.get("user")
 
     switch_campaign_match = switch_matcher.match(aspect_candidate)
     if switch_campaign_match:
-        logging.info(f"Switching campaign to {switch_campaign_match.group()}")
-        response = switch_campaign(
-            QueryMetaData(message.get("user")), switch_campaign_match.group()
-        )
+        campaign_name = switch_campaign_match.group().strip('"')
+        logging.info(f"Switching campaign to {campaign_name}")
+        response = switch_campaign(QueryMetaData(message.get("user")), campaign_name)
         say(response)
     else:
         logging.info(f"Parsing aspect query: {aspect_candidate} from user: {user_id}")
@@ -162,6 +160,11 @@ def custom_error_handler(error, body, logger, say):
             "text": "Sorry, something went wrong. Please try again.",
         }
     )
+
+
+@app.event("message")
+def handle_message_events(body, logger):
+    logger.info(body)
 
 
 def handler(request: Request):
