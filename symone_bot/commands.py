@@ -196,7 +196,9 @@ def switch_campaign(metadata: QueryMetaData, campaign_name: str) -> Dict[str, st
     param campaign_name: Name of the campaign to switch to.
     return: dict containing the response to be sent to Slack.
     """
-    logging.info(f"Switch campaign triggered by user: {metadata.user_id}")
+    logging.info(
+        f"Switch campaign triggered by user: {metadata.user_id}, campaign: '{campaign_name}'"
+    )
 
     datastore_client = create_client(PROJECT_ID)
     query = datastore_client.query(kind=DATA_KEY_CAMPAIGN)
@@ -205,7 +207,7 @@ def switch_campaign(metadata: QueryMetaData, campaign_name: str) -> Dict[str, st
     if len(results) == 0:
         return {
             "response_type": MESSAGE_RESPONSE_CHANNEL,
-            "text": f"Could not find campaign {campaign_name}. FYI, I'm case-sensitive.",
+            "text": f"Could not find campaign `{campaign_name}`. FYI, campaign names are case sensitive.",
         }
     current_campaign = get_current_campaign_id_entity()
     current_campaign["campaign_id"] = results[0].key.id

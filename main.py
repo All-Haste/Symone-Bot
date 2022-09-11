@@ -140,7 +140,7 @@ def aspect_query_handler(message, say, context):
     if switch_campaign_match:
         campaign_name = switch_campaign_match.group().replace('"', "")
         logging.info(f"Switching campaign to {campaign_name}")
-        response = switch_campaign(QueryMetaData(message.get("user")), campaign_name)
+        response = switch_campaign(QueryMetaData(user_id), campaign_name)
         say(response)
     else:
         logging.info(f"Parsing aspect query: {aspect_candidate} from user: {user_id}")
