@@ -10,11 +10,7 @@ from slack_bolt.adapter.google_cloud_functions import SlackRequestHandler
 from werkzeug import Request
 
 from symone_bot.aspects import aspect_list
-from symone_bot.commands import (
-    MESSAGE_RESPONSE_EPHEMERAL,
-    command_list,
-    switch_campaign,
-)
+from symone_bot.commands import command_list, switch_campaign
 from symone_bot.handler_source import HandlerSource
 from symone_bot.metadata import QueryMetaData
 from symone_bot.parser import QueryEvaluator
@@ -151,14 +147,13 @@ def aspect_query_handler(message, say, context):
 
 
 @app.error
-def custom_error_handler(error, body, logger, say):
+def custom_error_handler(error, body, logger, client, payload):
     logger.exception(f"Error: {error}")
     logger.info(f"Request body: {body}")
-    say(
-        {
-            "response_type": MESSAGE_RESPONSE_EPHEMERAL,
-            "text": "Sorry, something went wrong. Please try again.",
-        }
+    client.chat_postEphemeral(
+        channel=payload["channel"],
+        user=payload["user"],
+        text="Sorry, I had an error processing your request. Please try again.",
     )
 
 
