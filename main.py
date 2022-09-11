@@ -136,8 +136,8 @@ def aspect_query_handler(message, say, context):
 
     matches = switch_matcher.match(aspect_candidate)
     if matches:
-        logging.info(f"Switching campaign to {matches[1]}")
-        response = switch_campaign(QueryMetaData(message.get("user")), matches[1])
+        logging.info(f"Switching campaign to {matches[0]}")
+        response = switch_campaign(QueryMetaData(message.get("user")), matches[0])
         say(response)
     else:
         logging.info(f"Parsing aspect query: {aspect_candidate} from user: {user_id}")
