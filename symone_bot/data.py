@@ -36,6 +36,17 @@ def get_campaign(datastore_client=None) -> Dict[str, Any]:
     return campaign
 
 
+def get_game_master(datastore_client=None) -> str:
+    """
+    Gets the game master for the current campaign.
+
+    param datastore_client: Optional datastore client to use.
+    return: String containing the game master's user ID.
+    """
+    campaign = get_campaign(datastore_client)
+    return campaign["game_master"]
+
+
 def get_current_campaign_id_entity(
     datastore_client=None, project_id=PROJECT_ID
 ) -> Dict[str, Any]:

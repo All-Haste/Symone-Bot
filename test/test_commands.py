@@ -27,7 +27,9 @@ def test_help_message(test_metadata, test_commands):
     assert "`help`: retrieves help info.\n" in actual["text"]
 
 
-def test_add_deny_unallowed_user(test_metadata, test_aspects):
+@pytest.mark.skip(reason="mocking datastore locally is horrid")
+def test_add_deny_unallowed_user(test_metadata, test_aspects, mocker):
+    mocker.patch("symone_bot.data.get_game_master", return_value="not the user")
     aspect = test_aspects[0]
     actual = add(test_metadata, aspect, 100)
 

@@ -22,8 +22,6 @@ class Aspect:
         allowed_users=None,
         is_singleton=False,
     ):
-        if allowed_users is None:
-            allowed_users = [GAME_MASTER]
         self.name = name
         self.help_info = help_info
         self.value_type = value_type
