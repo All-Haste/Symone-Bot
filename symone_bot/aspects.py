@@ -30,6 +30,9 @@ class Aspect:
         self.allowed_users = allowed_users
         self.is_singleton = is_singleton
 
+    def __str__(self):
+        return self.name
+
     def help(self) -> str:
         return f"`{self.name}`: {self.help_info}."
 

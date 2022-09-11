@@ -52,6 +52,9 @@ class Command:
         self.aspect_type = aspect_type
         self.is_modifier = is_modifier
 
+    def __str__(self):
+        return self.name
+
     def help(self) -> str:
         return f"`{self.name}`: {self.help_info}."
 
