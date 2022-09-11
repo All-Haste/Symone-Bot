@@ -1,6 +1,6 @@
 import pytest
 
-from symone_bot.data import create_client, get_current_campaign_id
+from symone_bot.data import create_client, get_current_campaign_id_entity
 
 
 def test_create_client(mocker):
@@ -12,6 +12,6 @@ def test_create_client(mocker):
 
 @pytest.mark.skip(reason="This test needs the datastore emulator running")
 def test_get_current_campaign_id():
-    current_campaign_id = get_current_campaign_id()
+    current_campaign_id = get_current_campaign_id_entity()
 
     assert current_campaign_id == "rotrl"

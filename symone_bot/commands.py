@@ -3,7 +3,13 @@ import os
 from typing import Any, Callable, Dict, List
 
 from symone_bot.aspects import Aspect, aspect_list
-from symone_bot.data import PROJECT_ID, create_client, get_campaign
+from symone_bot.data import (
+    DATA_KEY_CAMPAIGN,
+    PROJECT_ID,
+    create_client,
+    get_campaign,
+    get_current_campaign_id_entity,
+)
 from symone_bot.metadata import QueryMetaData
 
 GAME_MASTER = os.getenv("GAME_MASTER")
@@ -182,6 +188,37 @@ def remove(metadata: QueryMetaData, aspect: Aspect, value: Any) -> Dict[str, str
     }
 
 
+def switch_campaign(metadata: QueryMetaData, campaign_name: str) -> Dict[str, str]:
+    """
+    Switches the campaign to the one specified.
+
+    param metadata: QueryMetaData object containing the metadata for the request.
+    param campaign_name: Name of the campaign to switch to.
+    return: dict containing the response to be sent to Slack.
+    """
+    logging.info(f"Switch campaign triggered by user: {metadata.user_id}")
+
+    datastore_client = create_client(PROJECT_ID)
+    query = datastore_client.query(kind=DATA_KEY_CAMPAIGN)
+    query.add_filter("campaign", "=", campaign_name)
+    results = list(query.fetch())
+    if len(results) == 0:
+        return {
+            "response_type": MESSAGE_RESPONSE_CHANNEL,
+            "text": f"Could not find campaign {campaign_name}. FYI, I'm case-sensitive.",
+        }
+    current_campaign = get_current_campaign_id_entity()
+    current_campaign["campaign_id"] = campaign_name
+    datastore_client.put(current_campaign)
+
+    logging.info(f"Current campaign set to {campaign_name}")
+
+    return {
+        "response_type": MESSAGE_RESPONSE_CHANNEL,
+        "text": f"Current campaign set to {campaign_name}",
+    }
+
+
 # List of commands used to build out
 command_list: List[Command] = [
     Command("default", "", default_response),
@@ -195,5 +232,11 @@ command_list: List[Command] = [
     ),
     Command(
         "remove", "removes a given value from a given aspect.", remove, is_modifier=True
+    ),
+    Command(
+        "switch_campaign",
+        "switches the current campaign.",
+        switch_campaign,
+        is_modifier=True,
     ),
 ]
