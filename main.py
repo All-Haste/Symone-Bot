@@ -85,13 +85,13 @@ app = App(
 )
 
 
-@app.message(re.compile("(hi|hello|hey) Symone"))
+@app.message(re.compile("(hi|hello|hey) Symone", re.IGNORECASE))
 def message_hello(message, say, context):
     """Responds to a user mentioning Symone."""
     say(f"{context['matches'][0]} there <@{message['user']}>")
 
 
-@app.message(re.compile("(What|what) can you do Symone\\?"))
+@app.message(re.compile("what can you do Symone\\?", re.IGNORECASE))
 def message_help(message, say):
     """Help message handler."""
     response = symone_message(
@@ -101,7 +101,9 @@ def message_help(message, say):
 
 
 @app.message(
-    re.compile("(did|Did) we (level up\\?|level up|levelup\\?|levelup|level\\?|level)")
+    re.compile(
+        "Did we (level up\\?|level up|levelup\\?|levelup|level\\?|level)", re.IGNORECASE
+    )
 )
 def message_did_they_level_up(message, say):
     """Responds to a user asking if they leveled up."""
@@ -127,21 +129,26 @@ def mocking_spongebob_reply(message):
     return reply
 
 
-@app.message(re.compile("Symone, (.*)"))
+@app.message(re.compile("Symone, (.*)", re.IGNORECASE))
 def aspect_query_handler(message, say, context):
     """Aspect query handler. Listens for "Symone, <query>"."""
     switch_matcher = re.compile('switch campaign to "(.*)"')
     aspect_candidate = context["matches"][0]
+    logging.info(f"Aspect candidate: {aspect_candidate}")
     user_id = message.get("user")
 
-    matches = switch_matcher.match(aspect_candidate)
-    if matches:
-        logging.info(f"Switching campaign to {matches[0]}")
-        response = switch_campaign(QueryMetaData(message.get("user")), matches[0])
+    switch_campaign_match = switch_matcher.match(aspect_candidate)
+    if switch_campaign_match:
+        logging.info(f"Switching campaign to {switch_campaign_match.group()}")
+        response = switch_campaign(
+            QueryMetaData(message.get("user")), switch_campaign_match.group()
+        )
         say(response)
     else:
         logging.info(f"Parsing aspect query: {aspect_candidate} from user: {user_id}")
-        response = symone_message(aspect_candidate, user_id, HandlerSource.ASPECT_QUERY)
+        response = symone_message(
+            aspect_candidate.lower(), user_id, HandlerSource.ASPECT_QUERY
+        )
         say(response)
 
 
