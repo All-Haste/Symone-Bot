@@ -224,6 +224,13 @@ def switch_campaign(metadata: QueryMetaData, campaign_name: str) -> Dict[str, st
     }
 
 
+def strange(metadata: QueryMetaData) -> Dict[str, str]:
+    return {
+        "response_type": MESSAGE_RESPONSE_CHANNEL,
+        "text": "Strange things are afoot at the Circle K.",
+    }
+
+
 # List of commands used to build out
 command_list: List[Command] = [
     Command("default", "", default_response),
@@ -238,4 +245,5 @@ command_list: List[Command] = [
     Command(
         "remove", "removes a given value from a given aspect.", remove, is_modifier=True
     ),
+    Command("what is your favorite movie?", "retrieves a strange response", strange),
 ]
