@@ -80,7 +80,10 @@ def test_create_response_with_current_command():
 
     metadata = QueryMetaData("foo")
     response = SymoneResponse(
-        Command("current", "get current", sub_func), metadata, aspect_list[0], None
+        Command("current", "get current", sub_func),
+        metadata=metadata,
+        aspect=aspect_list[0],
+        value=None,
     )
 
     result = response.get()

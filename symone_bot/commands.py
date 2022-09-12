@@ -1,5 +1,4 @@
 import logging
-import os
 from typing import Any, Callable, Dict, List
 
 from symone_bot.aspects import Aspect, aspect_list
@@ -13,7 +12,6 @@ from symone_bot.data import (
 )
 from symone_bot.metadata import QueryMetaData
 
-GAME_MASTER = os.getenv("GAME_MASTER")
 MESSAGE_RESPONSE_CHANNEL = "in_channel"
 MESSAGE_RESPONSE_EPHEMERAL = "ephemeral"
 

@@ -9,7 +9,6 @@ from slack_bolt import App
 from slack_bolt.adapter.google_cloud_functions import SlackRequestHandler
 from werkzeug import Request
 
-from symone_bot.aspects import aspect_list
 from symone_bot.commands import command_list
 from symone_bot.handler_source import HandlerSource
 from symone_bot.metadata import QueryMetaData
@@ -67,7 +66,7 @@ def run_aspect_query(input_text, metadata):
     logging.debug(f"run_aspect_query: Received input: {input_text}")
     if not input_text:
         raise ValueError("Input text is empty.")
-    evaluator = QueryEvaluator(command_list, aspect_list)
+    evaluator = QueryEvaluator.get_evaluator()
     response = evaluator.parse(input_text)
     response.metadata = metadata
     return response

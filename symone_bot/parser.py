@@ -4,10 +4,11 @@ Tools to parse queries to the bot.
 import collections
 import logging
 import re
-from typing import Generator, List, Pattern, Union
+from typing import Generator, List, Pattern, Union, Dict
 
-from symone_bot.aspects import Aspect
-from symone_bot.commands import Command
+from symone_bot.aspects import Aspect, aspect_list
+from symone_bot.commands import Command, command_list
+from symone_bot.prepositions import preposition_dict, Preposition
 from symone_bot.response import SymoneResponse
 
 Token = collections.namedtuple("Token", ["type", "value"])
@@ -32,12 +33,38 @@ class QueryEvaluator:
     A recursive descent parser for parsing through a query with the `parse` method.
     """
 
-    def __init__(self, commands: List[Command], aspects: List[Aspect]):
+    def __init__(
+        self,
+        commands: List[Command],
+        prepositions: Dict[str, Preposition],
+        aspects: List[Aspect],
+    ):
         self.tokens = None
         self.tok = None
         self.nexttok = None
         self.commands = commands
+        self.prepositions = prepositions
         self.aspects = aspects
+
+    @staticmethod
+    def get_evaluator(
+        commands: List[Command] = None,
+        prepositions: Dict[str, Preposition] = preposition_dict,
+        aspects: List[Aspect] = None,
+    ):
+        """
+        Static factory method for creating a QueryEvaluator.
+        param commands: List of commands to use.
+        param prepositions: Dict of prepositions to use.
+        param aspects: List of aspects to use.
+        return: QueryEvaluator
+        """
+        if commands is None:
+            commands = command_list
+        if aspects is None:
+            aspects = aspect_list
+
+        return QueryEvaluator(commands, prepositions, aspects)
 
     def parse(self, query: str) -> SymoneResponse:
         """
@@ -71,30 +98,54 @@ class QueryEvaluator:
 
     def _get_response(self) -> SymoneResponse:
         """Scans through the token set and attempts to return a Command"""
+        preposition = None
         aspect = None
         value = None
         if self.nexttok is None:
             command = self._lookup_command(Token("CMD", "default"))
         else:
+            # the first token must be a command
             self._expect("CMD")
             cmd_token = self.tok
             command = self._lookup_command(cmd_token)
             if self._accept("ASPECT"):
-                aspect_token = self.tok
-                aspect = self._lookup_aspect(aspect_token)
-                if self._accept("VALUE") or self._accept("STRING_VALUE"):
-                    value = self.get_value(self.tok[1])
+                aspect, value = self.get_aspect()
+            elif self._accept("PREP"):
+                aspect, preposition = self.get_preposition()
             else:
                 if self._accept("VALUE") or self._accept("STRING_VALUE"):
-                    value = self.get_value(self.tok[1])
+                    value = self._extract_value_from_token(self.tok[1])
 
         logging.info(
             f"Parser: found Command: {command}, Aspect: {aspect}, Value: {value}"
         )
-        return SymoneResponse(command, aspect=aspect, value=value)
+        return SymoneResponse(
+            command, aspect=aspect, value=value, preposition=preposition
+        )
+
+    def get_preposition(self):
+        """
+        Parses a preposition token and returns it as a Preposition object,
+        as well as returning an Aspect and value, since they are required
+        """
+        preposition_token = self.tok
+        preposition = self._lookup_preposition(preposition_token)
+        if self._accept("ASPECT"):
+            aspect, value = self.get_aspect()
+        else:
+            raise SyntaxError("Expected aspect and value after preposition")
+        return aspect, preposition
+
+    def get_aspect(self):
+        value = None
+        aspect_token = self.tok
+        aspect = self._lookup_aspect(aspect_token)
+        if self._accept("VALUE") or self._accept("STRING_VALUE"):
+            value = self._extract_value_from_token(self.tok[1])
+        return aspect, value
 
     @staticmethod
-    def get_value(tok: str) -> Union[int, str]:
+    def _extract_value_from_token(tok: str) -> Union[int, str]:
         if tok.replace(
             "-", ""
         ).isnumeric():  # strip out the negative sign before checking if it's numeric
@@ -104,16 +155,23 @@ class QueryEvaluator:
     def _get_master_pattern(self):
         cmds = ["\\b{}\\b".format(cmd.name) for cmd in self.commands]
         command_match = "|".join(cmds)
+        prepositions = [
+            "\\b{}\\b".format(preposition.name)
+            for preposition in self.prepositions.values()
+        ]
+        preposition_match = "|".join(prepositions)
         aspects = ["\\b{}\\b".format(cmd.name) for cmd in self.aspects]
         aspect_match = "|".join(aspects)
         cmd = r"(?P<CMD>{})".format(command_match)
+        preposition = r"(?P<PREP>{})".format(preposition_match)
         aspect = r"(?P<ASPECT>{})".format(aspect_match)
         val = r"(?P<VALUE>(-|)\d+)"
         string_val = r'(?P<STRING_VALUE>"(.*?)")'
         ws = r"(?P<WS>\s+)"
 
         pattern = re.compile(
-            "|".join([cmd, aspect, val, ws, string_val]), re.IGNORECASE
+            "|".join([cmd, aspect, preposition, val, ws, string_val]),
+            re.IGNORECASE,
         )
         return pattern
 
@@ -122,3 +180,6 @@ class QueryEvaluator:
 
     def _lookup_aspect(self, aspect_token: Token) -> Aspect:
         return {aspect.name: aspect for aspect in self.aspects}.get(aspect_token[1])
+
+    def _lookup_preposition(self, preposition_token: Token) -> Preposition:
+        return self.prepositions.get(preposition_token[1])

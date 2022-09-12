@@ -3,6 +3,7 @@ from typing import Any, Dict
 from symone_bot.aspects import Aspect
 from symone_bot.commands import Command
 from symone_bot.metadata import QueryMetaData
+from symone_bot.prepositions import Preposition
 
 
 class SymoneResponse:
@@ -21,6 +22,7 @@ class SymoneResponse:
         self,
         command: Command,
         metadata: QueryMetaData = None,
+        preposition: Preposition = None,
         aspect: Aspect = None,
         value: Any = None,
     ):
@@ -28,6 +30,7 @@ class SymoneResponse:
             raise AttributeError("'command' cannot be type 'NoneType'")
         self.metadata = metadata
         self.command = command
+        self.preposition = preposition
         self.aspect = aspect
 
         if self.command.is_modifier:
