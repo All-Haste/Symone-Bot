@@ -53,7 +53,7 @@ def test__get_master_pattern(query_evaluator):
 
     assert type(pattern) == re.Pattern
     assert pattern == re.compile(
-        '(?P<CMD>\\bfoo\\b)|(?P<ASPECT>\\bbar\\b)|(?P<VALUE>((-|)\\d+|"(.*?)"))|(?P<WS>\\s+)',
+        '(?P<CMD>\\bfoo\\b)|(?P<ASPECT>\\bbar\\b)|(?P<VALUE>(-|)\\d+)|(?P<WS>\\s+)|(?P<STRING_VALUE>"(.*?)")',
         re.IGNORECASE,
     )
 
@@ -89,7 +89,9 @@ def test__multiline_commands(query, query_evaluator):
     def foo(blank):
         return "foo"
 
-    query = query.replace("?", "")
+    query = query.replace(
+        "?", ""
+    )  # todo this needs to be handled in actual application code
     query = query.replace("!", "")
     new_command = Command(query, "tells you something strange", foo)
 
@@ -103,11 +105,41 @@ def test__multiline_commands(query, query_evaluator):
 
 
 @pytest.mark.parametrize(
+    "query",
+    [
+        ("set the number to", "1000", 1000),
+        ("switch campaign to", "Rise of the Runelords", "Rise of the Runelords"),
+    ],
+)
+def test__multiline_no_aspect_modifier_commands(query, query_evaluator):
+    def foo(metadata, input):
+        return input
+
+    command_text = query[0]
+    input_value = query[1]
+    expected_output = query[2]
+    new_command = Command(command_text, "modifies something", foo)
+    new_command.is_modifier = True
+
+    query_evaluator.commands.append(new_command)
+
+    if isinstance(expected_output, str):
+        input_query = f'{command_text} "{input_value}"'
+    else:
+        input_query = f"{command_text} {input_value}"
+    response = query_evaluator.parse(input_query)
+
+    assert response.command.name == command_text
+    assert response.command.help_info == "modifies something"
+    assert response.get() == expected_output
+
+
+@pytest.mark.parametrize(
     "test_set",
     [
         ("3", 3),
         ("-3", -3),
-        ("rise of the runelords", "rise of the runelords"),
+        ('"rise of the runelords"', "rise of the runelords"),
     ],
 )
 def test__get_value(test_set):

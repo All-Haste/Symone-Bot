@@ -82,7 +82,10 @@ class QueryEvaluator:
             if self._accept("ASPECT"):
                 aspect_token = self.tok
                 aspect = self._lookup_aspect(aspect_token)
-                if self._accept("VALUE"):
+                if self._accept("VALUE") or self._accept("STRING_VALUE"):
+                    value = self.get_value(self.tok[1])
+            else:
+                if self._accept("VALUE") or self._accept("STRING_VALUE"):
                     value = self.get_value(self.tok[1])
 
         logging.info(
@@ -105,10 +108,13 @@ class QueryEvaluator:
         aspect_match = "|".join(aspects)
         cmd = r"(?P<CMD>{})".format(command_match)
         aspect = r"(?P<ASPECT>{})".format(aspect_match)
-        val = r'(?P<VALUE>((-|)\d+|"(.*?)"))'
+        val = r"(?P<VALUE>(-|)\d+)"
+        string_val = r'(?P<STRING_VALUE>"(.*?)")'
         ws = r"(?P<WS>\s+)"
 
-        pattern = re.compile("|".join([cmd, aspect, val, ws]), re.IGNORECASE)
+        pattern = re.compile(
+            "|".join([cmd, aspect, val, ws, string_val]), re.IGNORECASE
+        )
         return pattern
 
     def _lookup_command(self, cmd_token: Token) -> Command:
