@@ -10,7 +10,7 @@ from slack_bolt.adapter.google_cloud_functions import SlackRequestHandler
 from werkzeug import Request
 
 from symone_bot.aspects import aspect_list
-from symone_bot.commands import command_list, switch_campaign
+from symone_bot.commands import command_list
 from symone_bot.handler_source import HandlerSource
 from symone_bot.metadata import QueryMetaData
 from symone_bot.parser import QueryEvaluator
@@ -128,22 +128,14 @@ def mocking_spongebob_reply(message):
 @app.message(re.compile("Symone, (.*)", re.IGNORECASE))
 def aspect_query_handler(message, say, context):
     """Aspect query handler. Listens for "Symone, <query>"."""
-    switch_matcher = re.compile('switch campaign to "(.*)"')
     aspect_candidate = context["matches"][0]
     user_id = message.get("user")
 
-    switch_campaign_match = switch_matcher.match(aspect_candidate)
-    if switch_campaign_match:
-        campaign_name = switch_campaign_match.group(1)
-        logging.info(f"Switching campaign to {campaign_name}")
-        response = switch_campaign(QueryMetaData(user_id), campaign_name)
-        say(response)
-    else:
-        logging.info(f"Parsing aspect query: {aspect_candidate} from user: {user_id}")
-        response = symone_message(
-            aspect_candidate.lower(), user_id, HandlerSource.ASPECT_QUERY
-        )
-        say(response)
+    logging.info(f"Parsing aspect query: {aspect_candidate} from user: {user_id}")
+    response = symone_message(
+        aspect_candidate.lower(), user_id, HandlerSource.ASPECT_QUERY
+    )
+    say(response)
 
 
 @app.error

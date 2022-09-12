@@ -2,6 +2,7 @@ import re
 
 import pytest
 
+from symone_bot.commands import Command
 from symone_bot.parser import QueryEvaluator, Token, generate_tokens
 
 
@@ -68,3 +69,30 @@ def test__lookup_aspect(query_evaluator):
     assert aspect.name == "bar"
     assert aspect.help_info == "a bar aspect"
     assert aspect.value_type == int
+
+
+@pytest.mark.parametrize(
+    "query",
+    [
+        "tell me something strange?",
+        "why did you say that one thing that one time?",
+        "I am pickle!",
+        "where dog",
+        "what is the meaning of life?",
+    ],
+)
+def test__multiline_commands(query, query_evaluator):
+    def foo(blank):
+        return "foo"
+
+    query = query.replace("?", "")
+    query = query.replace("!", "")
+    new_command = Command(query, "tells you something strange", foo)
+
+    query_evaluator.commands.append(new_command)
+
+    response = query_evaluator.parse(query)
+
+    assert response.command.name == query
+    assert response.command.help_info == "tells you something strange"
+    assert response.get() == "foo"

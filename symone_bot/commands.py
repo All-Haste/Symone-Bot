@@ -245,5 +245,11 @@ command_list: List[Command] = [
     Command(
         "remove", "removes a given value from a given aspect.", remove, is_modifier=True
     ),
-    Command("what is your favorite movie?", "retrieves a strange response", strange),
+    Command(
+        "switch campaign to",
+        "switches the current campaign.",
+        switch_campaign,
+        is_modifier=True,
+    ),
+    Command("movie quote please", "retrieves a strange response", strange),
 ]
