@@ -62,9 +62,16 @@ class SymoneResponse:
 
         :return: Dictionary representing a Slack message.
         """
+
         if self.command.is_modifier:
-            # execute command on aspect with value
-            return self.command.callable(self.metadata, self.aspect, self.value)
+            if self.aspect is not None:
+                # execute command on aspect with value
+                return self.command.callable(self.metadata, self.aspect, self.value)
+            else:
+                # handle the special case when the command is a modifier but no aspect is specified
+                # this generally means the thing being modified is not stored in a campaign context
+                # for example: the current_campaign table
+                return self.command.callable(self.metadata, self.value)
         elif self.aspect is not None:
             # execute command on aspect (has no value)
             return self.command.callable(self.metadata, self.aspect)
