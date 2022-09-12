@@ -12,15 +12,18 @@ def query_evaluator(test_commands, test_aspects):
 
 
 def test_generate_tokens():
-    num = r"(?P<NUM>\d+)"
+    val = r'(?P<VALUE>((-|)\d+|"(.*?)"))'
     ws = r"(?P<WS>\s+)"
-    pattern = re.compile("|".join([num, ws]))
-    token_generator = generate_tokens("1 2 3 foo", pattern)
+    pattern = re.compile("|".join([val, ws]))
+    token_generator = generate_tokens('1 2 -3 "rise of the runelords"', pattern)
 
     token_list = list(token_generator)
 
+    assert len(token_list) == 4
     for token in token_list:
-        assert token[0] == "NUM"
+        assert token[0] == "VALUE"
+
+    assert token_list[3][1] == '"rise of the runelords"'
 
 
 def test_parse(query_evaluator):
@@ -50,7 +53,7 @@ def test__get_master_pattern(query_evaluator):
 
     assert type(pattern) == re.Pattern
     assert pattern == re.compile(
-        "(?P<CMD>\\bfoo\\b)|(?P<ASPECT>\\bbar\\b)|(?P<NUM>(-|)\\d+)|(?P<WS>\\s+)"
+        "(?P<CMD>\\bfoo\\b)|(?P<ASPECT>\\bbar\\b)|(?P<VALUE>((-|)\\d+|\"(.*?)\"))|(?P<WS>\\s+)"
     )
 
 

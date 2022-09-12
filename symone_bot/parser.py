@@ -4,7 +4,7 @@ Tools to parse queries to the bot.
 import collections
 import logging
 import re
-from typing import Generator, List, Pattern
+from typing import Generator, List, Pattern, Union
 
 from symone_bot.aspects import Aspect
 from symone_bot.commands import Command
@@ -82,13 +82,19 @@ class QueryEvaluator:
             if self._accept("ASPECT"):
                 aspect_token = self.tok
                 aspect = self._lookup_aspect(aspect_token)
-                if self._accept("NUM"):
-                    value = int(self.tok[1])
+                if self._accept("VALUE"):
+                    value = self.get_value(self.tok[1])
 
         logging.info(
             f"Parser: found Command: {command}, Aspect: {aspect}, Value: {value}"
         )
         return SymoneResponse(command, aspect=aspect, value=value)
+
+    @staticmethod
+    def get_value(tok: str) -> Union[int, str]:
+        if tok.replace("-", "").isnumeric():  # strip out the negative sign before checking if it's numeric
+            return int(tok)
+        return tok
 
     def _get_master_pattern(self):
         cmds = ["\\b{}\\b".format(cmd.name) for cmd in self.commands]
@@ -97,10 +103,10 @@ class QueryEvaluator:
         aspect_match = "|".join(aspects)
         cmd = r"(?P<CMD>{})".format(command_match)
         aspect = r"(?P<ASPECT>{})".format(aspect_match)
-        num = r"(?P<NUM>(-|)\d+)"
+        val = r'(?P<VALUE>((-|)\d+|"(.*?)"))'
         ws = r"(?P<WS>\s+)"
 
-        pattern = re.compile("|".join([cmd, aspect, num, ws]))
+        pattern = re.compile("|".join([cmd, aspect, val, ws]))
         return pattern
 
     def _lookup_command(self, cmd_token: Token) -> Command:
