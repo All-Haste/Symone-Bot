@@ -92,9 +92,11 @@ class QueryEvaluator:
 
     @staticmethod
     def get_value(tok: str) -> Union[int, str]:
-        if tok.replace("-", "").isnumeric():  # strip out the negative sign before checking if it's numeric
+        if tok.replace(
+            "-", ""
+        ).isnumeric():  # strip out the negative sign before checking if it's numeric
             return int(tok)
-        return tok
+        return tok.replace('"', "")
 
     def _get_master_pattern(self):
         cmds = ["\\b{}\\b".format(cmd.name) for cmd in self.commands]

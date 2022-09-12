@@ -53,7 +53,7 @@ def test__get_master_pattern(query_evaluator):
 
     assert type(pattern) == re.Pattern
     assert pattern == re.compile(
-        "(?P<CMD>\\bfoo\\b)|(?P<ASPECT>\\bbar\\b)|(?P<VALUE>((-|)\\d+|\"(.*?)\"))|(?P<WS>\\s+)"
+        '(?P<CMD>\\bfoo\\b)|(?P<ASPECT>\\bbar\\b)|(?P<VALUE>((-|)\\d+|"(.*?)"))|(?P<WS>\\s+)'
     )
 
 
@@ -99,3 +99,16 @@ def test__multiline_commands(query, query_evaluator):
     assert response.command.name == query
     assert response.command.help_info == "tells you something strange"
     assert response.get() == "foo"
+
+
+@pytest.mark.parametrize(
+    "test_set",
+    [
+        ("3", 3),
+        ("-3", -3),
+        ("rise of the runelords", "rise of the runelords"),
+    ],
+)
+def test__get_value(test_set):
+    actual = QueryEvaluator.get_value(test_set[0])
+    assert actual == test_set[1]
