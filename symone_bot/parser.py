@@ -108,7 +108,7 @@ class QueryEvaluator:
         val = r'(?P<VALUE>((-|)\d+|"(.*?)"))'
         ws = r"(?P<WS>\s+)"
 
-        pattern = re.compile("|".join([cmd, aspect, val, ws]))
+        pattern = re.compile("|".join([cmd, aspect, val, ws]), re.IGNORECASE)
         return pattern
 
     def _lookup_command(self, cmd_token: Token) -> Command:

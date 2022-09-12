@@ -64,12 +64,11 @@ def run_aspect_query(input_text, metadata):
     """
     Evaluates the input text as an aspect query and returns a SymoneResponse object..
     """
+    logging.debug(f"run_aspect_query: Received input: {input_text}")
     if not input_text:
-        query = ""
-    else:
-        query = input_text.lower()
+        raise ValueError("Input text is empty.")
     evaluator = QueryEvaluator(command_list, aspect_list)
-    response = evaluator.parse(query)
+    response = evaluator.parse(input_text)
     response.metadata = metadata
     return response
 
@@ -132,9 +131,7 @@ def aspect_query_handler(message, say, context):
     user_id = message.get("user")
 
     logging.info(f"Parsing aspect query: {aspect_candidate} from user: {user_id}")
-    response = symone_message(
-        aspect_candidate.lower(), user_id, HandlerSource.ASPECT_QUERY
-    )
+    response = symone_message(aspect_candidate, user_id, HandlerSource.ASPECT_QUERY)
     say(response)
 
 
@@ -145,7 +142,7 @@ def custom_error_handler(error, body, logger, client, payload):
     client.chat_postEphemeral(
         channel=payload["channel"],
         user=payload["user"],
-        text="Sorry, I had an error processing your request. Please try again.",
+        text=f"Sorry, I had an error processing your request. Please try again. {error}",
     )
 
 

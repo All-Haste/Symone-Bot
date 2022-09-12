@@ -53,7 +53,8 @@ def test__get_master_pattern(query_evaluator):
 
     assert type(pattern) == re.Pattern
     assert pattern == re.compile(
-        '(?P<CMD>\\bfoo\\b)|(?P<ASPECT>\\bbar\\b)|(?P<VALUE>((-|)\\d+|"(.*?)"))|(?P<WS>\\s+)'
+        '(?P<CMD>\\bfoo\\b)|(?P<ASPECT>\\bbar\\b)|(?P<VALUE>((-|)\\d+|"(.*?)"))|(?P<WS>\\s+)',
+        re.IGNORECASE,
     )
 
 

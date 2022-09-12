@@ -30,8 +30,9 @@ class SymoneResponse:
         self.command = command
         self.aspect = aspect
 
-        if self.command.is_modifier and not aspect.is_singleton:
-            self.check_modifier_command_attributes(self.aspect, value)
+        if self.command.is_modifier:
+            if aspect and not aspect.is_singleton:
+                self.check_modifier_command_attributes(self.aspect, value)
         elif not self.command.is_modifier and command.name != "default":
             if value is not None:
                 raise AttributeError("Cannot have a value for a non-modifier command.")
