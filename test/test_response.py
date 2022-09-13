@@ -4,6 +4,7 @@ from flask import Response
 from symone_bot.aspects import Aspect, aspect_dict
 from symone_bot.commands import Command, command_dict, current
 from symone_bot.metadata import QueryMetaData
+from symone_bot.prepositions import Preposition, PrepositionType
 from symone_bot.response import SymoneResponse
 
 
@@ -15,12 +16,14 @@ def test_init_sanity_check():
         metadata=QueryMetaData("foo"),
         aspect=Aspect("bar", "", "", value_type=str),
         value="test",
+        preposition=Preposition("to", PrepositionType.DIRECTIONAL),
     )
 
     assert response.command.name == "foo"
     assert response.metadata.user_id == "foo"
     assert response.aspect.name == "bar"
     assert response.value == "test"
+    assert response.preposition.name == "to"
 
 
 def test_init_does_not_reject_default():
