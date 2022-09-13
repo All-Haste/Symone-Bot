@@ -4,7 +4,7 @@ import pytest
 
 from symone_bot.commands import Command
 from symone_bot.parser import QueryEvaluator, Token, generate_tokens
-from symone_bot.prepositions import preposition_dict, PrepositionType
+from symone_bot.prepositions import PrepositionType, preposition_dict
 
 
 @pytest.fixture

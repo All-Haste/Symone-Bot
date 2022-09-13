@@ -1,25 +1,23 @@
 import logging
+import os
 from typing import Any, Callable, Dict, List
 
 from symone_bot.aspects import Aspect, aspect_list
-from symone_bot.data import (
-    DATA_KEY_CAMPAIGN,
-    PROJECT_ID,
-    create_client,
-    get_campaign,
-    get_current_campaign_id_entity,
-    get_game_master,
-)
+from symone_bot.data import DatabaseClient
+
+
 from symone_bot.metadata import QueryMetaData
 
+PROJECT_ID = os.getenv("PROJECT_ID", "test-project")
 MESSAGE_RESPONSE_CHANNEL = "in_channel"
 MESSAGE_RESPONSE_EPHEMERAL = "ephemeral"
-
 
 # TODO bot functions:
 # Any add loot
 # Did they level?
 # Set next level (plus set xp... might avoid having to build an xp table..)
+
+database_client = DatabaseClient(PROJECT_ID)
 
 
 class Command:
@@ -101,8 +99,7 @@ def add(metadata: QueryMetaData, aspect: Aspect, value: Any) -> Dict[str, str]:
     return: dict containing the response to be sent to Slack.
     """
     logging.info(f"Add triggered by user: {metadata.user_id}")
-    datastore_client = create_client(PROJECT_ID)
-    if metadata.user_id != get_game_master(datastore_client):
+    if metadata.user_id != database_client.get_game_master():
         logging.warning(
             f"Unauthorized user attempted to execute add command on {aspect.name} Aspect."
         )
@@ -117,11 +114,11 @@ def add(metadata: QueryMetaData, aspect: Aspect, value: Any) -> Dict[str, str]:
             "text": f"{aspect.name} is a singleton aspect, you can't add to it.",
         }
 
-    campaign = get_campaign(datastore_client)
+    campaign = database_client.get_current_campaign()
     current_aspect_value = campaign[aspect.name]
     new_aspect_value = current_aspect_value + value
     campaign[aspect.name] = new_aspect_value
-    datastore_client.put(campaign)
+    database_client.put_record(campaign)
 
     logging.info(f"Updated {aspect.name} to {new_aspect_value}")
 
@@ -139,7 +136,7 @@ def current(metadata: QueryMetaData, aspect: Aspect) -> Dict[str, str]:
     param aspect: Aspect object containing the aspect to be modified.
     """
     logging.info(f"Current triggered by user: {metadata.user_id}")
-    campaign = get_campaign()
+    campaign = database_client.get_current_campaign()
 
     return {
         "response_type": MESSAGE_RESPONSE_CHANNEL,
@@ -158,8 +155,7 @@ def remove(metadata: QueryMetaData, aspect: Aspect, value: Any) -> Dict[str, str
     return: dict containing the response to be sent to Slack.
     """
     logging.info(f"Remove triggered by user: {metadata.user_id}")
-    datastore_client = create_client(PROJECT_ID)
-    if metadata.user_id != get_game_master(datastore_client):
+    if metadata.user_id != database_client.get_game_master():
         logging.warning(
             f"Unauthorized user attempted to execute remove command on {aspect.name} Aspect."
         )
@@ -174,12 +170,12 @@ def remove(metadata: QueryMetaData, aspect: Aspect, value: Any) -> Dict[str, str
             "text": f"{aspect.name} is a singleton aspect, you can't remove from it.",
         }
 
-    campaign = get_campaign(datastore_client)
+    campaign = database_client.get_current_campaign()
 
     current_aspect_value = campaign[aspect.name]
     new_aspect_value = current_aspect_value - value
     campaign[aspect.name] = new_aspect_value
-    datastore_client.put(campaign)
+    database_client.put_record(campaign)
 
     logging.info(f"Updated {aspect.name} to {new_aspect_value}")
 
@@ -201,18 +197,18 @@ def switch_campaign(metadata: QueryMetaData, campaign_name: str) -> Dict[str, st
         f"Switch campaign triggered by user: {metadata.user_id}, campaign: '{campaign_name}'"
     )
 
-    datastore_client = create_client(PROJECT_ID)
-    query = datastore_client.query(kind=DATA_KEY_CAMPAIGN)
-    query.add_filter("campaign", "=", campaign_name)
-    results = list(query.fetch())
-    if len(results) == 0:
+    try:
+        found_campaign = database_client.get_campaign_by_name(campaign_name)
+    except Exception as e:
+        logging.error(f"Error finding campaign: {campaign_name}")
+        logging.exception(e)
         return {
             "response_type": MESSAGE_RESPONSE_CHANNEL,
-            "text": f"Could not find campaign `{campaign_name}`. FYI, campaign names are case sensitive.",
+            "text": f"Error finding campaign: {e}",
         }
-    current_campaign = get_current_campaign_id_entity()
-    current_campaign["campaign_id"] = results[0].key.id_or_name
-    datastore_client.put(current_campaign)
+    current_campaign = database_client.get_current_campaign_entity()
+    current_campaign["campaign_id"] = found_campaign.key.id_or_name
+    database_client.put_record(current_campaign)
 
     logging.info(f"Current campaign set to {campaign_name}")
 

@@ -28,8 +28,8 @@ def test_help_message(test_metadata, test_commands):
 
 
 @pytest.mark.skip(reason="mocking datastore locally is horrid")
-def test_add_deny_unallowed_user(test_metadata, test_aspects, mocker):
-    mocker.patch("symone_bot.data.get_game_master", return_value="not the user")
+def test_add_deny_unallowed_user(test_metadata, test_aspects):
+
     aspect = test_aspects[0]
     actual = add(test_metadata, aspect, 100)
 

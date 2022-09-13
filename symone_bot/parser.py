@@ -4,11 +4,11 @@ Tools to parse queries to the bot.
 import collections
 import logging
 import re
-from typing import Generator, List, Pattern, Union, Dict
+from typing import Dict, Generator, List, Pattern, Union
 
 from symone_bot.aspects import Aspect, aspect_list
 from symone_bot.commands import Command, command_list
-from symone_bot.prepositions import preposition_dict, Preposition
+from symone_bot.prepositions import Preposition, preposition_dict
 from symone_bot.response import SymoneResponse
 
 Token = collections.namedtuple("Token", ["type", "value"])
