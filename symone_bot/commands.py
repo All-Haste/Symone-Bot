@@ -179,9 +179,12 @@ def current(metadata: QueryMetaData, aspect: Aspect, **kwargs) -> Dict[str, str]
     logging.info(f"Current triggered by user: {metadata.user_id}")
     campaign = database_client.get_current_game_context()
 
+    current_value = campaign[aspect.database_key]
+    if aspect.sub_database_key:
+        current_value = current_value[aspect.sub_database_key]
     return {
         "response_type": MESSAGE_RESPONSE_CHANNEL,
-        "text": f"{aspect.name} is currently {campaign[aspect.name]}",
+        "text": f"{aspect.name} is currently {current_value}",
     }
 
 
