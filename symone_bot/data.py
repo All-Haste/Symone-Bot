@@ -1,3 +1,4 @@
+import os
 from typing import Any, Dict
 
 import pymongo
@@ -8,6 +9,16 @@ DATA_KEY_CURRENT_CAMPAIGN = "current_campaign"
 
 
 class DatabaseClient:
+    """
+    Client for the backing database.
+
+    Attributes:
+        mongo_password: Password for the MongoDB user.
+        mongo_user: Username for the MongoDB user.
+        mongo_host: Hostname for the MongoDB instance.
+        mongo_scheme: URL scheme for the MongoDB connection.
+    """
+
     def __init__(
         self,
         mongo_password: str,
@@ -31,7 +42,7 @@ class DatabaseClient:
     @staticmethod
     def get_client():
         if not hasattr(DatabaseClient, "instance"):
-            raise Exception("DatabaseClient not initialized.")
+            return DatabaseClient(os.getenv("MONGO_PASSWORD"))
         return DatabaseClient.instance
 
     def get_current_campaign(self) -> Dict[str, Any]:

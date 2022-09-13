@@ -1,5 +1,4 @@
 import logging
-import os
 from functools import wraps
 from typing import Any, Callable, Dict
 
@@ -8,7 +7,6 @@ from symone_bot.data import DatabaseClient
 
 from symone_bot.metadata import QueryMetaData
 
-PROJECT_ID = os.getenv("PROJECT_ID", "test-project")
 MESSAGE_RESPONSE_CHANNEL = "in_channel"
 MESSAGE_RESPONSE_EPHEMERAL = "ephemeral"
 
