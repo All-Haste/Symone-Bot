@@ -4,9 +4,6 @@ from typing import Any, Dict
 import pymongo
 from pymongo.server_api import ServerApi
 
-DATA_KEY_CAMPAIGN = "campaign"
-DATA_KEY_CURRENT_CAMPAIGN = "current_campaign"
-
 
 class DatabaseClient:
     """
@@ -45,62 +42,62 @@ class DatabaseClient:
             return DatabaseClient(os.getenv("MONGO_PASSWORD"))
         return DatabaseClient.instance
 
-    def get_current_campaign(self) -> Dict[str, Any]:
+    def get_current_game_context(self) -> Dict[str, Any]:
         """
-        Gets the campaign from the database.
+        Gets the game context from the database.
 
-        return: Dict containing the campaign data.
+        return: Dict containing the game context data.
         """
-        current_campaign_id = self.get_current_context_id()["active_context"]
-        campaign = self.db.game_context.find_one({"_id": current_campaign_id})
-        if campaign is None:
-            raise Exception("No current campaign found.")
-        return campaign
+        current_game_context_id = self.get_current_context_id()["active_context"]
+        game_context = self.db.game_context.find_one({"_id": current_game_context_id})
+        if game_context is None:
+            raise Exception("No current game context found.")
+        return game_context
 
     def get_context_by_campaign_name(self, campaign_name: str):
         """
-        Gets the campaign from the database.
+        Gets the game context from the database, using the campaign name.
 
         param campaign_name: Name of the campaign to retrieve.
-        return: Dict containing the campaign data.
+        return: Dict containing the game context data.
         """
-        campaigns = self.db.game_context.find({"name": campaign_name})
-        if len(campaigns) == 0:
+        game_contexts = self.db.game_context.find({"name": campaign_name})
+        if len(game_contexts) == 0:
             raise Exception(
                 "No campaign found with that name. Make sure case is correct"
             )
-        elif len(campaigns) > 1:
-            raise Exception("Multiple campaigns found with that name.")
-        return campaigns[0]
+        elif len(game_contexts) > 1:
+            raise Exception("Multiple game_contexts found with that name.")
+        return game_contexts[0]
 
     def get_game_master(self) -> str:
         """
-        Gets the game master for the current campaign.
+        Gets the game master for the current game context.
 
         return: String containing the game master's user ID.
         """
-        campaign = self.get_current_campaign()
-        return campaign["game_master"]
+        game_context = self.get_current_game_context()
+        return game_context["game_master"]
 
     def get_current_context_id(self) -> Dict[str, Any]:
         """
-        Gets the entity that tracks the current campaign from the database.
+        Gets the entity that tracks the current game context from the database.
 
-        return: Dict containing the campaign data.
+        return: Dict containing the game context data.
         """
-        current_campaign = self.db.current_game_context.find_one(
+        current_context = self.db.current_game_context.find_one(
             {"tracking_context": True}
         )
-        if current_campaign is None:
-            raise Exception("No current campaign found.")
+        if current_context is None:
+            raise Exception("Could not locate context tracking entity.")
 
-        return current_campaign
+        return current_context
 
     def update_game_context(self, game_context: Dict[str, Any]) -> None:
         """
         Updates the game context in the database.
 
-        param campaign: Dict containing the campaign data.
+        param game_context: Dict containing the game context data.
         """
         update_filter = {"_id": game_context["_id"]}
         self.db.game_context.update_one(update_filter, {"$set": game_context})

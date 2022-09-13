@@ -151,7 +151,7 @@ def add(
     logging.info(f"Add triggered by user: {metadata.user_id}")
     database_client = DatabaseClient.get_client()
 
-    campaign = database_client.get_current_campaign()
+    campaign = database_client.get_current_game_context()
     current_aspect_value = campaign[aspect.database_key]
     if aspect.sub_database_key:
         current_aspect_value = current_aspect_value[aspect.sub_database_key]
@@ -177,7 +177,7 @@ def current(metadata: QueryMetaData, aspect: Aspect, **kwargs) -> Dict[str, str]
     """
     database_client = DatabaseClient.get_client()
     logging.info(f"Current triggered by user: {metadata.user_id}")
-    campaign = database_client.get_current_campaign()
+    campaign = database_client.get_current_game_context()
 
     return {
         "response_type": MESSAGE_RESPONSE_CHANNEL,
@@ -201,7 +201,7 @@ def remove(
     database_client = DatabaseClient.get_client()
     logging.info(f"Remove triggered by user: {metadata.user_id}")
 
-    campaign = database_client.get_current_campaign()
+    campaign = database_client.get_current_game_context()
 
     current_aspect_value = campaign[aspect.name]
     new_aspect_value = current_aspect_value - value

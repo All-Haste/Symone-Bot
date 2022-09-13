@@ -20,6 +20,7 @@ jobs:
           entry_point: handler
           runtime: python310
           credentials: ${{ secrets.GCP_SA_KEY }}
+          https_trigger_security_level: "secure_always"
           secret_environment_variables: 'MONGO_PASSWORD=projects/1029074823521/secrets/symone-bot-password/versions/1'
           env_vars: SLACK_SIGNING_SECRET=${{ secrets.SLACK_SIGNING_SECRET }},GAME_MASTER=${{ secrets.GAME_MASTER }},SLACK_BOT_TOKEN=${{ secrets.SLACK_BOT_TOKEN}},PROJECT_ID=${{ secrets.GCP_PROJECT_ID }},DEPLOYMENT_ENVIRONMENT=prod
 
