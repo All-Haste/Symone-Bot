@@ -115,7 +115,7 @@ def test__lookup_preposition(query_evaluator):
     ],
 )
 def test__multiline_commands(query, query_evaluator):
-    def foo(blank):
+    def foo(**kwargs):
         return "foo"
 
     query = query.replace(
@@ -124,7 +124,7 @@ def test__multiline_commands(query, query_evaluator):
     query = query.replace("!", "")
     new_command = Command(query, "tells you something strange", foo)
 
-    query_evaluator.commands.append(new_command)
+    query_evaluator.commands[query] = new_command
 
     response = query_evaluator.parse(query)
 
@@ -143,13 +143,13 @@ def test__multiline_commands(query, query_evaluator):
 def test__multiline_no_aspect_modifier_commands(
     command_text, input_value, expected_output, query_evaluator
 ):
-    def foo(metadata, input):
-        return input
+    def foo(value, **kwargs):
+        return value
 
     new_command = Command(command_text, "modifies something", foo)
     new_command.is_modifier = True
 
-    query_evaluator.commands.append(new_command)
+    query_evaluator.commands[command_text] = new_command
 
     if isinstance(expected_output, str):
         input_query = f'{command_text} "{input_value}"'

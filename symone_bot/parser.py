@@ -4,10 +4,10 @@ Tools to parse queries to the bot.
 import collections
 import logging
 import re
-from typing import Dict, Generator, List, Pattern, Union
+from typing import Dict, Generator, Pattern, Union
 
-from symone_bot.aspects import Aspect, aspect_list
-from symone_bot.commands import Command, command_list
+from symone_bot.aspects import Aspect, aspect_dict
+from symone_bot.commands import Command, command_dict
 from symone_bot.prepositions import Preposition, preposition_dict
 from symone_bot.response import SymoneResponse
 
@@ -35,9 +35,9 @@ class QueryEvaluator:
 
     def __init__(
         self,
-        commands: List[Command],
+        commands: Dict[str, Command],
         prepositions: Dict[str, Preposition],
-        aspects: List[Aspect],
+        aspects: Dict[str, Aspect],
     ):
         self.tokens = None
         self.tok = None
@@ -48,9 +48,9 @@ class QueryEvaluator:
 
     @staticmethod
     def get_evaluator(
-        commands: List[Command] = None,
+        commands: Dict[str, Command] = None,
         prepositions: Dict[str, Preposition] = preposition_dict,
-        aspects: List[Aspect] = None,
+        aspects: Dict[str, Aspect] = None,
     ):
         """
         Static factory method for creating a QueryEvaluator.
@@ -60,9 +60,9 @@ class QueryEvaluator:
         return: QueryEvaluator
         """
         if commands is None:
-            commands = command_list
+            commands = command_dict
         if aspects is None:
-            aspects = aspect_list
+            aspects = aspect_dict
 
         return QueryEvaluator(commands, prepositions, aspects)
 
@@ -153,14 +153,14 @@ class QueryEvaluator:
         return tok.replace('"', "")
 
     def _get_master_pattern(self):
-        cmds = ["\\b{}\\b".format(cmd.name) for cmd in self.commands]
+        cmds = ["\\b{}\\b".format(cmd.name) for cmd in self.commands.values()]
         command_match = "|".join(cmds)
         prepositions = [
             "\\b{}\\b".format(preposition.name)
             for preposition in self.prepositions.values()
         ]
         preposition_match = "|".join(prepositions)
-        aspects = ["\\b{}\\b".format(cmd.name) for cmd in self.aspects]
+        aspects = ["\\b{}\\b".format(aspect.name) for aspect in self.aspects.values()]
         aspect_match = "|".join(aspects)
         cmd = r"(?P<CMD>{})".format(command_match)
         preposition = r"(?P<PREP>{})".format(preposition_match)
@@ -176,10 +176,10 @@ class QueryEvaluator:
         return pattern
 
     def _lookup_command(self, cmd_token: Token) -> Command:
-        return {cmd.name: cmd for cmd in self.commands}.get(cmd_token[1])
+        return self.commands.get(cmd_token[1])
 
     def _lookup_aspect(self, aspect_token: Token) -> Aspect:
-        return {aspect.name: aspect for aspect in self.aspects}.get(aspect_token[1])
+        return self.aspects.get(aspect_token[1])
 
     def _lookup_preposition(self, preposition_token: Token) -> Preposition:
         return self.prepositions.get(preposition_token[1])

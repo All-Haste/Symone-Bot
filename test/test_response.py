@@ -1,8 +1,8 @@
 import pytest
 from flask import Response
 
-from symone_bot.aspects import Aspect, aspect_list
-from symone_bot.commands import Command, command_list, current
+from symone_bot.aspects import Aspect, aspect_dict
+from symone_bot.commands import Command, command_dict, current
 from symone_bot.metadata import QueryMetaData
 from symone_bot.response import SymoneResponse
 
@@ -16,19 +16,19 @@ def test_init_rejects_nonetype_command():
 def test_init_rejects_incorrect_aspect_value(aspect_type, value):
     with pytest.raises(AttributeError):
         SymoneResponse(
-            command_list[2],
-            aspect=Aspect("bar", "", value_type=aspect_type),
+            command_dict.get("current"),
+            aspect=Aspect("bar", "", "", value_type=aspect_type),
             value=value,
         )
 
 
 def test_get_with_value():
-    def sub_func(metadata, aspect, value):
+    def sub_func(value, **kwargs):
         return Response(value, 200)
 
     response = SymoneResponse(
         Command("foo", "", sub_func, is_modifier=True),
-        aspect=Aspect("bar", "", value_type=str),
+        aspect=Aspect("bar", "", "", value_type=str),
         value="test",
     )
 
@@ -39,10 +39,12 @@ def test_get_with_value():
 
 
 def test_get_with_only_aspect():
-    def sub_func(metadata, aspect):
+    def sub_func(**kwargs):
         return Response()
 
-    response = SymoneResponse(Command("foo", "", sub_func), aspect=Aspect("bar", ""))
+    response = SymoneResponse(
+        Command("foo", "", sub_func), aspect=Aspect("bar", "", "")
+    )
 
     result = response.get()
     expected = Response()
@@ -54,18 +56,18 @@ def test_reject_non_modifier_commands_with_values():
     with pytest.raises(AttributeError):
         SymoneResponse(
             Command("current", "", current),
-            aspect=Aspect("bar", "", value_type=str),
+            aspect=Aspect("bar", "", "", value_type=str),
             value="foo",
         )
 
 
 def test_create_response_with_non_modifier_command():
-    def sub_func(metadata, aspect):
+    def sub_func(**kwargs):
         return Response()
 
     metadata = QueryMetaData("foo")
     response = SymoneResponse(
-        Command("current", "", sub_func), metadata, aspect=Aspect("bar", "")
+        Command("current", "", sub_func), metadata, aspect=Aspect("bar", "", "")
     )
 
     result = response.get()
@@ -75,14 +77,14 @@ def test_create_response_with_non_modifier_command():
 
 
 def test_create_response_with_current_command():
-    def sub_func(metadata, aspect):
+    def sub_func(**kwargs):
         return Response()
 
     metadata = QueryMetaData("foo")
     response = SymoneResponse(
         Command("current", "get current", sub_func),
         metadata=metadata,
-        aspect=aspect_list[0],
+        aspect=aspect_dict.get("xp"),
         value=None,
     )
 
