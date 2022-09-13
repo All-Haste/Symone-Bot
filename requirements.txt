@@ -2,3 +2,5 @@ Flask~=2.0.1
 slack_bolt~=1.14.3
 google-cloud-datastore~=2.8.1
 google-cloud-logging~=3.2.2
+google-cloud-secret-manager~=2.12.4
+pymongo~=4.2.0
