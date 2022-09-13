@@ -48,8 +48,10 @@ class DatabaseClient:
 
         return: Dict containing the game context data.
         """
-        current_game_context_id = self.get_current_context_id()["active_context"]
-        game_context = self.db.game_context.find_one({"_id": current_game_context_id})
+        current_game_context_info = self.get_current_context_id()["active_context"]
+        game_context = self.db.game_context.find_one(
+            {"_id": current_game_context_info.id}
+        )
         if game_context is None:
             raise Exception("No current game context found.")
         return game_context

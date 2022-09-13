@@ -1,4 +1,5 @@
 import pytest
+from bson import DBRef
 from testcontainers.mongodb import MongoDbContainer
 
 from symone_bot.aspects import Aspect
@@ -45,7 +46,12 @@ def mongodb():
             }
         )
         db.current_game_context.insert_one(
-            {"tracking_context": True, "active_context": result.inserted_id}
+            {
+                "tracking_context": True,
+                "active_context": DBRef(
+                    "game_context", result.inserted_id, "symone_knowledge"
+                ),
+            }
         )
         yield db
 
