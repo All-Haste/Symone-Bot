@@ -4,7 +4,7 @@ Tools to parse queries to the bot.
 import collections
 import logging
 import re
-from typing import Dict, Generator, Pattern, Union
+from typing import Dict, Generator, Pattern, Union, Tuple
 
 from symone_bot.aspects import Aspect, aspect_dict
 from symone_bot.commands import Command, command_dict
@@ -123,7 +123,7 @@ class QueryEvaluator:
             command, aspect=aspect, value=value, preposition=preposition
         )
 
-    def get_preposition(self):
+    def get_preposition(self) -> Tuple[Aspect, Preposition]:
         """
         Parses a preposition token and returns it as a Preposition object,
         as well as returning an Aspect and value, since they are required
@@ -131,12 +131,16 @@ class QueryEvaluator:
         preposition_token = self.tok
         preposition = self._lookup_preposition(preposition_token)
         if self._accept("ASPECT"):
-            aspect, value = self.get_aspect()
+            aspect, _ = self.get_aspect()
         else:
             raise SyntaxError("Expected aspect and value after preposition")
         return aspect, preposition
 
-    def get_aspect(self):
+    def get_aspect(self) -> Tuple[Aspect, Union[str, int]]:
+        """
+        Parses an aspect token and returns it as an Aspect object,
+        as well as returning a value, if it's present.
+        """
         value = None
         aspect_token = self.tok
         aspect = self._lookup_aspect(aspect_token)

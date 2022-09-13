@@ -7,6 +7,49 @@ from symone_bot.metadata import QueryMetaData
 from symone_bot.response import SymoneResponse
 
 
+def test_init_sanity_check():
+    command = Command("foo", "", lambda: 1 + 1)
+    command.is_modifier = True
+    response = SymoneResponse(
+        command,
+        metadata=QueryMetaData("foo"),
+        aspect=Aspect("bar", "", "", value_type=str),
+        value="test",
+    )
+
+    assert response.command.name == "foo"
+    assert response.metadata.user_id == "foo"
+    assert response.aspect.name == "bar"
+    assert response.value == "test"
+
+
+def test_init_does_not_reject_default():
+    try:
+        command = Command("default", "", current)
+        command.is_modifier = False
+        SymoneResponse(
+            command,
+            aspect=Aspect("bar", "", "", value_type=str),
+            value="foo",
+        )
+    except AttributeError:
+        assert False, "Should not have raised AttributeError"
+
+
+def test_check_modifier_command_attributes_raises_when_value_type_is_none_and_value_is_not():
+    with pytest.raises(AttributeError):
+        aspect = Aspect("bar", "", "", value_type=None)
+        value = "foo"
+        SymoneResponse.check_modifier_command_attributes(aspect, value)
+
+
+def test_check_modifier_command_attributes_raises_when_mismatched_types():
+    with pytest.raises(AttributeError):
+        aspect = Aspect("bar", "", "", value_type=str)
+        value = 1
+        SymoneResponse.check_modifier_command_attributes(aspect, value)
+
+
 def test_init_rejects_nonetype_command():
     with pytest.raises(AttributeError):
         SymoneResponse(None)

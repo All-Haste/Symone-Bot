@@ -24,3 +24,17 @@ def test__preposition_type_checks_name(invalid_name):
 def test__preposition_type_checks_preposition_type(invalid_preposition_type):
     with pytest.raises(TypeError):
         Preposition("foo", invalid_preposition_type)
+
+
+@pytest.mark.parametrize(
+    "preposition_type, number",
+    [
+        (PrepositionType.DIRECTIONAL, 1),
+        (PrepositionType.TIME, 2),
+        (PrepositionType.PLACE, 3),
+        (PrepositionType.LOCATION, 4),
+        (PrepositionType.OTHER, 5),
+    ],
+)
+def test__preposition_type_num_values(preposition_type, number):
+    assert preposition_type.value == number

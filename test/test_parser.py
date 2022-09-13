@@ -12,6 +12,24 @@ def query_evaluator(test_commands, test_aspects):
     return QueryEvaluator(test_commands, preposition_dict, test_aspects)
 
 
+def test__evaluator_initial_state(query_evaluator, test_commands, test_aspects):
+    assert query_evaluator.tokens is None
+    assert query_evaluator.tok is None
+    assert query_evaluator.nexttok is None
+    assert query_evaluator.commands == test_commands
+    assert query_evaluator.prepositions == preposition_dict
+    assert query_evaluator.aspects == test_aspects
+
+
+def test__parse_verify_no_preposition(query_evaluator):
+    response = query_evaluator.parse("foo bar 3")
+
+    assert response.command.name == "foo"
+    assert response.aspect.name == "bar"
+    assert response.value == 3
+    assert response.preposition is None
+
+
 def test_generate_tokens():
     val = r'(?P<VALUE>((-|)\d+|"(.*?)"))'
     ws = r"(?P<WS>\s+)"
@@ -173,3 +191,23 @@ def test__multiline_no_aspect_modifier_commands(
 def test__get_value(input_string, expected):
     actual = QueryEvaluator._extract_value_from_token(input_string)
     assert actual == expected
+
+
+def test__get_preposition(query_evaluator):
+    query_evaluator.tok = Token("PREP", "to")
+    query_evaluator.nexttok = Token("ASPECT", "bar")
+    query_evaluator.tokens = iter([query_evaluator.tok, query_evaluator.nexttok])
+    aspect, prep = query_evaluator.get_preposition()
+
+    assert aspect.name == "bar"
+    assert prep.name == "to"
+
+
+def test__get_aspect(query_evaluator):
+    query_evaluator.tok = Token("ASPECT", "bar")
+    query_evaluator.nexttok = Token("VALUE", "3")
+    query_evaluator.tokens = iter([query_evaluator.tok, query_evaluator.nexttok])
+    aspect, value = query_evaluator.get_aspect()
+
+    assert aspect.name == "bar"
+    assert value == 3
