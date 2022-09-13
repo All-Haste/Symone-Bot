@@ -36,7 +36,7 @@ class DatabaseClient:
 
     def get_current_campaign(self) -> Dict[str, Any]:
         """
-        Gets the campaign from GCP Datastore.
+        Gets the campaign from the database.
 
         return: Dict containing the campaign data.
         """
@@ -48,7 +48,7 @@ class DatabaseClient:
 
     def get_context_by_campaign_name(self, campaign_name: str):
         """
-        Gets the campaign from GCP Datastore.
+        Gets the campaign from the database.
 
         param campaign_name: Name of the campaign to retrieve.
         return: Dict containing the campaign data.
@@ -73,7 +73,7 @@ class DatabaseClient:
 
     def get_current_context_id(self) -> Dict[str, Any]:
         """
-        Gets the entity that tracks the current campaign from GCP Datastore.
+        Gets the entity that tracks the current campaign from the database.
 
         return: Dict containing the campaign data.
         """

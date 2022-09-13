@@ -1,6 +1,6 @@
 # Symone Bot
 
-Symone Bot is a slack bot built with Python and run on Google Cloud Functions (with GCP Datastore backing).
+Symone Bot is a slack bot built with Python and run on Google Cloud Functions (with MongoDB backing).
 
 ## Commands and Aspects
 
@@ -15,7 +15,7 @@ Symone Bot uses a simple recursive descent parser, located in `symone_bot/parser
 
 ## Cloud Resources and Deployment
 
-The bot is deployed to GCP Cloud Functions, and uses GCP Datastore as a backing store. Deployment is handled via the Github Release action.
+The bot is deployed to GCP Cloud Functions, and uses MongoDB as a backing store. Deployment is handled via the Github Release action.
 
 ### Other Stuff
 

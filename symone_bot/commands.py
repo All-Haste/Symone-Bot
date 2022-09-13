@@ -171,10 +171,11 @@ def add(
 
 def current(metadata: QueryMetaData, aspect: Aspect, **kwargs) -> Dict[str, str]:
     """
-    Gets the current aspect value stored in GCP Datastore
+    Gets the current aspect value.
 
     param metadata: QueryMetaData object containing the metadata for the request.
     param aspect: Aspect object containing the aspect to be modified.
+    return: dict containing the response to be sent to Slack.
     """
     database_client = DatabaseClient.get_client()
     logging.info(f"Current triggered by user: {metadata.user_id}")
@@ -192,7 +193,7 @@ def remove(
     metadata: QueryMetaData, aspect: Aspect, value: Any, **kwargs
 ) -> Dict[str, str]:
     """
-    Removes the value from the aspect value stored in GCP Datastore
+    Removes the value amount from the aspect.
 
     param metadata: QueryMetaData object containing the metadata for the request.
     param aspect: Aspect object containing the aspect to be modified.
