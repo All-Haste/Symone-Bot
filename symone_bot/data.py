@@ -1,68 +1,95 @@
-import os
 from typing import Any, Dict
 
-from google.cloud import datastore
-from google.cloud.datastore import Key
+import pymongo
+from pymongo.server_api import ServerApi
 
 DATA_KEY_CAMPAIGN = "campaign"
 DATA_KEY_CURRENT_CAMPAIGN = "current_campaign"
-PROJECT_ID = os.getenv("PROJECT_ID")
 
 
-def create_client(project_id: str):
-    """
-    Creates a datastore client.
+class DatabaseClient:
+    def __init__(
+        self,
+        mongo_password: str,
+        mongo_user: str = "symone-client",
+        mongo_host: str = "gamenightserverlessinst.7ncjp.mongodb.net",
+        mongo_scheme: str = "mongodb+srv",
+    ):
+        if mongo_password is None:
+            raise AttributeError("'mongo_password' cannot be type 'NoneType'")
+        self.client = pymongo.MongoClient(
+            f"{mongo_scheme}://{mongo_user}:{mongo_password}@{mongo_host}/?retryWrites=true&w=majority",
+            server_api=ServerApi("1"),
+        )
+        self.db = self.client.symone_knowledge
 
-    param project_id: Project ID to use for the datastore client.
-    """
-    return datastore.Client(project_id)
+    def __new__(cls, *args, **kwargs):
+        if not hasattr(cls, "instance"):
+            cls.instance = super(DatabaseClient, cls).__new__(cls)
+        return cls.instance
 
+    @staticmethod
+    def get_client():
+        if not hasattr(DatabaseClient, "instance"):
+            raise Exception("DatabaseClient not initialized.")
+        return DatabaseClient.instance
 
-def get_campaign(datastore_client=None) -> Dict[str, Any]:
-    """
-    Gets the campaign from GCP Datastore.
+    def get_current_campaign(self) -> Dict[str, Any]:
+        """
+        Gets the campaign from the database.
 
-    param datastore_client: Optional datastore client to use, will create if none provided.
-    return: Dict containing the campaign data.
-    """
-    if not datastore_client:
-        datastore_client = create_client(PROJECT_ID)
-    current_campaign_id = get_current_campaign_id_entity(datastore_client)[
-        "campaign_id"
-    ]
-    campaign = datastore_client.get(
-        Key(DATA_KEY_CAMPAIGN, current_campaign_id, project=PROJECT_ID)
-    )
-    return campaign
+        return: Dict containing the campaign data.
+        """
+        current_campaign_id = self.get_current_context_id()["active_context"]
+        campaign = self.db.game_context.find_one({"_id": current_campaign_id})
+        if campaign is None:
+            raise Exception("No current campaign found.")
+        return campaign
 
+    def get_context_by_campaign_name(self, campaign_name: str):
+        """
+        Gets the campaign from the database.
 
-def get_game_master(datastore_client=None) -> str:
-    """
-    Gets the game master for the current campaign.
+        param campaign_name: Name of the campaign to retrieve.
+        return: Dict containing the campaign data.
+        """
+        campaigns = self.db.game_context.find({"name": campaign_name})
+        if len(campaigns) == 0:
+            raise Exception(
+                "No campaign found with that name. Make sure case is correct"
+            )
+        elif len(campaigns) > 1:
+            raise Exception("Multiple campaigns found with that name.")
+        return campaigns[0]
 
-    param datastore_client: Optional datastore client to use.
-    return: String containing the game master's user ID.
-    """
-    campaign = get_campaign(datastore_client)
-    return campaign["game_master"]
+    def get_game_master(self) -> str:
+        """
+        Gets the game master for the current campaign.
 
+        return: String containing the game master's user ID.
+        """
+        campaign = self.get_current_campaign()
+        return campaign["game_master"]
 
-def get_current_campaign_id_entity(
-    datastore_client=None, project_id=PROJECT_ID
-) -> Dict[str, Any]:
-    """
-    Gets the ID for the current campaign from GCP Datastore.
+    def get_current_context_id(self) -> Dict[str, Any]:
+        """
+        Gets the entity that tracks the current campaign from the database.
 
-    param datastore_client: Optional datastore client to use, will create if none provided.
-    return: Dict containing the campaign data.
-    """
-    if not datastore_client:
-        datastore_client = create_client(project_id)
-    try:
-        current_campaign = list(
-            datastore_client.query(kind=DATA_KEY_CURRENT_CAMPAIGN).fetch()
-        )[0]
-    except IndexError:
-        raise Exception("No current campaign set.")
+        return: Dict containing the campaign data.
+        """
+        current_campaign = self.db.current_game_context.find_one(
+            {"tracking_context": True}
+        )
+        if current_campaign is None:
+            raise Exception("No current campaign found.")
 
-    return current_campaign
+        return current_campaign
+
+    def update_game_context(self, game_context: Dict[str, Any]) -> None:
+        """
+        Updates the game context in the database.
+
+        param campaign: Dict containing the campaign data.
+        """
+        update_filter = {"_id": game_context["_id"]}
+        self.db.game_context.update_one(update_filter, {"$set": game_context})

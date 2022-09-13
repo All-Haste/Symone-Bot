@@ -1,7 +1,9 @@
 import pytest
+from testcontainers.mongodb import MongoDbContainer
 
 from symone_bot.aspects import Aspect
 from symone_bot.commands import Command
+from symone_bot.data import DatabaseClient
 from symone_bot.metadata import QueryMetaData
 
 
@@ -12,9 +14,47 @@ def test_metadata():
 
 @pytest.fixture
 def test_commands():
-    return [Command("foo", "does foo stuff", lambda: 1 + 1, is_modifier=True)]
+    return {"foo": Command("foo", "does foo stuff", lambda: 1 + 1, is_modifier=True)}
 
 
 @pytest.fixture
 def test_aspects():
-    return [Aspect("bar", "a bar aspect", int)]
+    return {"bar": Aspect("bar", "a bar aspect", "bar", value_type=int)}
+
+
+@pytest.fixture(scope="session")
+def mongodb():
+    with MongoDbContainer("mongo:6.0.1") as mongo:
+        db = mongo.get_connection_client().symone_knowledge
+        result = db.game_context.insert_one(
+            {
+                "kind": "campaign",
+                "name": "Against the Aeon Throne",
+                "game_master": "U72P1S26N",
+                "currency": {"quantity": 0, "type": "credits"},
+                "party": {
+                    "name": "",
+                    "size": 5,
+                    "level": 1,
+                    "xp": 0,
+                    "xp_for_level_up": 0,
+                    "members": {},
+                },
+                "loot": {},
+                "system": {"name": "Starfinder", "version": 1},
+            }
+        )
+        db.current_game_context.insert_one(
+            {"tracking_context": True, "active_context": result.inserted_id}
+        )
+        yield db
+
+
+@pytest.fixture
+def database_client(mongodb):
+    return DatabaseClient(
+        "test",
+        mongo_user="test",
+        mongo_host=f"{mongodb.client.address[0]}:{mongodb.client.address[1]}",
+        mongo_scheme="mongodb",
+    )

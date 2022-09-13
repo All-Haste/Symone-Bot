@@ -2,7 +2,7 @@ from symone_bot.aspects import Aspect
 
 
 def test_aspect_help():
-    test_aspect = Aspect("foo", "a foo aspect")
+    test_aspect = Aspect("foo", "a foo aspect", "foo")
     actual = test_aspect.help()
 
     assert actual == "`foo`: a foo aspect."

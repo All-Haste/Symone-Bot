@@ -4,11 +4,12 @@ import pytest
 
 from symone_bot.commands import Command
 from symone_bot.parser import QueryEvaluator, Token, generate_tokens
+from symone_bot.prepositions import PrepositionType, preposition_dict
 
 
 @pytest.fixture
 def query_evaluator(test_commands, test_aspects):
-    return QueryEvaluator(test_commands, test_aspects)
+    return QueryEvaluator(test_commands, preposition_dict, test_aspects)
 
 
 def test_generate_tokens():
@@ -24,6 +25,36 @@ def test_generate_tokens():
         assert token[0] == "VALUE"
 
     assert token_list[3][1] == '"rise of the runelords"'
+
+
+@pytest.mark.parametrize(
+    "input_string,expected_tokens",
+    [
+        (
+            "foo bar 3",
+            [Token("CMD", "foo"), Token("ASPECT", "bar"), Token("VALUE", "3")],
+        ),
+        (
+            "foo bar -3",
+            [Token("CMD", "foo"), Token("ASPECT", "bar"), Token("VALUE", "-3")],
+        ),
+        (
+            "foo 1000 to bar",
+            [
+                Token("CMD", "foo"),
+                Token("VALUE", "1000"),
+                Token("PREP", "to"),
+                Token("ASPECT", "bar"),
+            ],
+        ),
+    ],
+)
+def test__generate_tokens_with_master_pattern(
+    query_evaluator, input_string, expected_tokens
+):
+    master_pattern = query_evaluator._get_master_pattern()
+    tokens = list(generate_tokens(input_string, master_pattern))
+    assert tokens == expected_tokens
 
 
 def test_parse(query_evaluator):
@@ -48,16 +79,6 @@ def test_parse_throws_error_if_command_is_not_first(query, query_evaluator):
         query_evaluator.parse(query)
 
 
-def test__get_master_pattern(query_evaluator):
-    pattern = query_evaluator._get_master_pattern()
-
-    assert type(pattern) == re.Pattern
-    assert pattern == re.compile(
-        '(?P<CMD>\\bfoo\\b)|(?P<ASPECT>\\bbar\\b)|(?P<VALUE>(-|)\\d+)|(?P<WS>\\s+)|(?P<STRING_VALUE>"(.*?)")',
-        re.IGNORECASE,
-    )
-
-
 def test__lookup_function(query_evaluator):
     cmd_token = Token("CMD", "foo")
     command = query_evaluator._lookup_command(cmd_token)
@@ -75,6 +96,14 @@ def test__lookup_aspect(query_evaluator):
     assert aspect.value_type == int
 
 
+def test__lookup_preposition(query_evaluator):
+    prep_token = Token("PREP", "to")
+    prep = query_evaluator._lookup_preposition(prep_token)
+
+    assert prep.name == "to"
+    assert prep.preposition_type == PrepositionType.DIRECTIONAL
+
+
 @pytest.mark.parametrize(
     "query",
     [
@@ -86,7 +115,7 @@ def test__lookup_aspect(query_evaluator):
     ],
 )
 def test__multiline_commands(query, query_evaluator):
-    def foo(blank):
+    def foo(**kwargs):
         return "foo"
 
     query = query.replace(
@@ -95,7 +124,7 @@ def test__multiline_commands(query, query_evaluator):
     query = query.replace("!", "")
     new_command = Command(query, "tells you something strange", foo)
 
-    query_evaluator.commands.append(new_command)
+    query_evaluator.commands[query] = new_command
 
     response = query_evaluator.parse(query)
 
@@ -105,23 +134,22 @@ def test__multiline_commands(query, query_evaluator):
 
 
 @pytest.mark.parametrize(
-    "query",
+    "command_text,input_value,expected_output",
     [
         ("set the number to", "1000", 1000),
         ("switch campaign to", "Rise of the Runelords", "Rise of the Runelords"),
     ],
 )
-def test__multiline_no_aspect_modifier_commands(query, query_evaluator):
-    def foo(metadata, input):
-        return input
+def test__multiline_no_aspect_modifier_commands(
+    command_text, input_value, expected_output, query_evaluator
+):
+    def foo(value, **kwargs):
+        return value
 
-    command_text = query[0]
-    input_value = query[1]
-    expected_output = query[2]
     new_command = Command(command_text, "modifies something", foo)
     new_command.is_modifier = True
 
-    query_evaluator.commands.append(new_command)
+    query_evaluator.commands[command_text] = new_command
 
     if isinstance(expected_output, str):
         input_query = f'{command_text} "{input_value}"'
@@ -135,13 +163,13 @@ def test__multiline_no_aspect_modifier_commands(query, query_evaluator):
 
 
 @pytest.mark.parametrize(
-    "test_set",
+    "input_string,expected",
     [
         ("3", 3),
         ("-3", -3),
         ('"rise of the runelords"', "rise of the runelords"),
     ],
 )
-def test__get_value(test_set):
-    actual = QueryEvaluator.get_value(test_set[0])
-    assert actual == test_set[1]
+def test__get_value(input_string, expected):
+    actual = QueryEvaluator._extract_value_from_token(input_string)
+    assert actual == expected

@@ -3,6 +3,7 @@ from typing import Any, Dict
 from symone_bot.aspects import Aspect
 from symone_bot.commands import Command
 from symone_bot.metadata import QueryMetaData
+from symone_bot.prepositions import Preposition
 
 
 class SymoneResponse:
@@ -21,6 +22,7 @@ class SymoneResponse:
         self,
         command: Command,
         metadata: QueryMetaData = None,
+        preposition: Preposition = None,
         aspect: Aspect = None,
         value: Any = None,
     ):
@@ -28,6 +30,7 @@ class SymoneResponse:
             raise AttributeError("'command' cannot be type 'NoneType'")
         self.metadata = metadata
         self.command = command
+        self.preposition = preposition
         self.aspect = aspect
 
         if self.command.is_modifier:
@@ -62,18 +65,10 @@ class SymoneResponse:
 
         :return: Dictionary representing a Slack message.
         """
-
-        if self.command.is_modifier:
-            if self.aspect is not None:
-                # execute command on aspect with value
-                return self.command.callable(self.metadata, self.aspect, self.value)
-            else:
-                # handle the special case when the command is a modifier but no aspect is specified
-                # this generally means the thing being modified is not stored in a campaign context
-                # for example: the current_campaign table
-                return self.command.callable(self.metadata, self.value)
-        elif self.aspect is not None:
-            # execute command on aspect (has no value)
-            return self.command.callable(self.metadata, self.aspect)
-        else:
-            return self.command.callable(self.metadata)
+        kwargs = {
+            "metadata": self.metadata,
+            "aspect": self.aspect,
+            "value": self.value,
+            "preposition": self.preposition,
+        }
+        return self.command.callable(**kwargs)

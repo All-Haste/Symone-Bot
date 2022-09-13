@@ -1,19 +1,14 @@
 import logging
 import os
-from typing import Any, Callable, Dict, List
+from functools import wraps
+from typing import Any, Callable, Dict
 
-from symone_bot.aspects import Aspect, aspect_list
-from symone_bot.data import (
-    DATA_KEY_CAMPAIGN,
-    PROJECT_ID,
-    create_client,
-    get_campaign,
-    get_current_campaign_id_entity,
-    get_game_master,
-)
+from symone_bot.aspects import Aspect, aspect_dict
+from symone_bot.data import DatabaseClient
+
 from symone_bot.metadata import QueryMetaData
 
-GAME_MASTER = os.getenv("GAME_MASTER")
+PROJECT_ID = os.getenv("PROJECT_ID", "test-project")
 MESSAGE_RESPONSE_CHANNEL = "in_channel"
 MESSAGE_RESPONSE_EPHEMERAL = "ephemeral"
 
@@ -22,6 +17,55 @@ MESSAGE_RESPONSE_EPHEMERAL = "ephemeral"
 # Any add loot
 # Did they level?
 # Set next level (plus set xp... might avoid having to build an xp table..)
+
+
+def game_master_only(f: Callable) -> Callable:
+    """
+    Decorator to check if the user is the game master before executing the command.
+    param f: Callable to be decorated.
+    return: Callable to be executed, or a default response if the user is not the game master.
+    """
+
+    @wraps(f)
+    def wrapper(*args):
+        metadata: QueryMetaData = args[0]
+        aspect = args[1]
+
+        database_client = DatabaseClient.get_client()
+        if metadata.user_id != database_client.get_game_master():
+            logging.warning(
+                f"Unauthorized user attempted to execute add command on {aspect.name} Aspect."
+            )
+            return {
+                "response_type": MESSAGE_RESPONSE_CHANNEL,
+                "text": "Nice try...",
+            }
+        else:
+            return f(*args)
+
+    return wrapper
+
+
+def no_singleton_aspects(f: Callable) -> Callable:
+    """
+    Decorator to check if the aspect is a singleton before executing the command.
+    param f: Callable to be decorated.
+    return: Callable to be executed, or a default response if the aspect is a singleton.
+    """
+
+    @wraps(f)
+    def wrapper(*args):
+        aspect = args[1]
+
+        if aspect.is_singleton:
+            return {
+                "response_type": MESSAGE_RESPONSE_CHANNEL,
+                "text": f"{aspect.name} is a singleton aspect, you can't add to it.",
+            }
+        else:
+            return f(*args)
+
+    return wrapper
 
 
 class Command:
@@ -60,7 +104,7 @@ class Command:
         return f"`{self.name}`: {self.help_info}."
 
 
-def default_response(metadata: QueryMetaData) -> dict:
+def default_response(metadata: QueryMetaData, **kwargs) -> dict:
     """
     Default response for when a command is not recognized.
 
@@ -74,7 +118,7 @@ def default_response(metadata: QueryMetaData) -> dict:
     }
 
 
-def help_message(metadata: QueryMetaData) -> dict:
+def help_message(metadata: QueryMetaData, **kwargs) -> dict:
     """
     Auto generates help message by gathering the help info from each SymoneCommand.
 
@@ -83,19 +127,23 @@ def help_message(metadata: QueryMetaData) -> dict:
     """
     logging.info(f"Default response triggered by user: {metadata.user_id}")
     text = """"""
-    for command in command_list:
+    for command in command_dict.values():
         if not command.callable == default_response:
             text += f"{command.help()}\n"
-    text += f"\nI am also tracking the following aspects: {', '.join([aspect.name for aspect in aspect_list])}"
+    text += f"\nI am also tracking the following aspects: {', '.join([aspect.name for aspect in aspect_dict.values()])}"
     return {
         "response_type": MESSAGE_RESPONSE_EPHEMERAL,
         "text": text,
     }
 
 
-def add(metadata: QueryMetaData, aspect: Aspect, value: Any) -> Dict[str, str]:
+@game_master_only
+@no_singleton_aspects
+def add(
+    metadata: QueryMetaData, aspect: Aspect, value: Any, **kwargs
+) -> Dict[str, str]:
     """
-    Adds the value to the aspect value stored in GCP Datastore
+    Adds the value to the aspect value stored in the database.
 
     param metadata: QueryMetaData object containing the metadata for the request.
     param aspect: Aspect object containing the aspect to be modified.
@@ -103,27 +151,15 @@ def add(metadata: QueryMetaData, aspect: Aspect, value: Any) -> Dict[str, str]:
     return: dict containing the response to be sent to Slack.
     """
     logging.info(f"Add triggered by user: {metadata.user_id}")
-    datastore_client = create_client(PROJECT_ID)
-    if metadata.user_id != get_game_master(datastore_client):
-        logging.warning(
-            f"Unauthorized user attempted to execute add command on {aspect.name} Aspect."
-        )
-        return {
-            "response_type": MESSAGE_RESPONSE_CHANNEL,
-            "text": "Nice try...",
-        }
+    database_client = DatabaseClient.get_client()
 
-    if aspect.is_singleton:
-        return {
-            "response_type": MESSAGE_RESPONSE_CHANNEL,
-            "text": f"{aspect.name} is a singleton aspect, you can't add to it.",
-        }
-
-    campaign = get_campaign(datastore_client)
-    current_aspect_value = campaign[aspect.name]
+    campaign = database_client.get_current_campaign()
+    current_aspect_value = campaign[aspect.database_key]
+    if aspect.sub_database_key:
+        current_aspect_value = current_aspect_value[aspect.sub_database_key]
     new_aspect_value = current_aspect_value + value
     campaign[aspect.name] = new_aspect_value
-    datastore_client.put(campaign)
+    database_client.update_game_context(campaign)
 
     logging.info(f"Updated {aspect.name} to {new_aspect_value}")
 
@@ -133,15 +169,17 @@ def add(metadata: QueryMetaData, aspect: Aspect, value: Any) -> Dict[str, str]:
     }
 
 
-def current(metadata: QueryMetaData, aspect: Aspect) -> Dict[str, str]:
+def current(metadata: QueryMetaData, aspect: Aspect, **kwargs) -> Dict[str, str]:
     """
-    Gets the current aspect value stored in GCP Datastore
+    Gets the current aspect value.
 
     param metadata: QueryMetaData object containing the metadata for the request.
     param aspect: Aspect object containing the aspect to be modified.
+    return: dict containing the response to be sent to Slack.
     """
+    database_client = DatabaseClient.get_client()
     logging.info(f"Current triggered by user: {metadata.user_id}")
-    campaign = get_campaign()
+    campaign = database_client.get_current_campaign()
 
     return {
         "response_type": MESSAGE_RESPONSE_CHANNEL,
@@ -149,39 +187,28 @@ def current(metadata: QueryMetaData, aspect: Aspect) -> Dict[str, str]:
     }
 
 
-# remove and add can probably be combined to the same core command, with a switch for +/-
-def remove(metadata: QueryMetaData, aspect: Aspect, value: Any) -> Dict[str, str]:
+@game_master_only
+@no_singleton_aspects
+def remove(
+    metadata: QueryMetaData, aspect: Aspect, value: Any, **kwargs
+) -> Dict[str, str]:
     """
-    Removes the value from the aspect value stored in GCP Datastore
+    Removes the value amount from the aspect.
 
     param metadata: QueryMetaData object containing the metadata for the request.
     param aspect: Aspect object containing the aspect to be modified.
     param value: Value to be removed from the aspect.
     return: dict containing the response to be sent to Slack.
     """
+    database_client = DatabaseClient.get_client()
     logging.info(f"Remove triggered by user: {metadata.user_id}")
-    datastore_client = create_client(PROJECT_ID)
-    if metadata.user_id != get_game_master(datastore_client):
-        logging.warning(
-            f"Unauthorized user attempted to execute remove command on {aspect.name} Aspect."
-        )
-        return {
-            "response_type": MESSAGE_RESPONSE_CHANNEL,
-            "text": "Nice try...",
-        }
 
-    if aspect.is_singleton:
-        return {
-            "response_type": MESSAGE_RESPONSE_CHANNEL,
-            "text": f"{aspect.name} is a singleton aspect, you can't remove from it.",
-        }
-
-    campaign = get_campaign(datastore_client)
+    campaign = database_client.get_current_campaign()
 
     current_aspect_value = campaign[aspect.name]
     new_aspect_value = current_aspect_value - value
     campaign[aspect.name] = new_aspect_value
-    datastore_client.put(campaign)
+    database_client.update_game_context(campaign)
 
     logging.info(f"Updated {aspect.name} to {new_aspect_value}")
 
@@ -191,7 +218,7 @@ def remove(metadata: QueryMetaData, aspect: Aspect, value: Any) -> Dict[str, str
     }
 
 
-def switch_campaign(metadata: QueryMetaData, campaign_name: str) -> Dict[str, str]:
+def switch_campaign(metadata: QueryMetaData, aspect: str, **kwargs) -> Dict[str, str]:
     """
     Switches the campaign to the one specified.
 
@@ -199,32 +226,33 @@ def switch_campaign(metadata: QueryMetaData, campaign_name: str) -> Dict[str, st
     param campaign_name: Name of the campaign to switch to.
     return: dict containing the response to be sent to Slack.
     """
+    database_client = DatabaseClient.get_client()
     logging.info(
-        f"Switch campaign triggered by user: {metadata.user_id}, campaign: '{campaign_name}'"
+        f"Switch campaign triggered by user: {metadata.user_id}, campaign: '{aspect}'"
     )
 
-    datastore_client = create_client(PROJECT_ID)
-    query = datastore_client.query(kind=DATA_KEY_CAMPAIGN)
-    query.add_filter("campaign", "=", campaign_name)
-    results = list(query.fetch())
-    if len(results) == 0:
+    try:
+        found_campaign = database_client.get_context_by_campaign_name(aspect)
+    except Exception as e:
+        logging.error(f"Error finding campaign: {aspect}")
+        logging.exception(e)
         return {
             "response_type": MESSAGE_RESPONSE_CHANNEL,
-            "text": f"Could not find campaign `{campaign_name}`. FYI, campaign names are case sensitive.",
+            "text": f"Error finding campaign: {e}",
         }
-    current_campaign = get_current_campaign_id_entity()
-    current_campaign["campaign_id"] = results[0].key.id_or_name
-    datastore_client.put(current_campaign)
+    current_campaign = database_client.get_current_context_id()
+    current_campaign["campaign_id"] = found_campaign.key.id_or_name
+    database_client.update_game_context(current_campaign)
 
-    logging.info(f"Current campaign set to {campaign_name}")
+    logging.info(f"Current campaign set to {aspect}")
 
     return {
         "response_type": MESSAGE_RESPONSE_CHANNEL,
-        "text": f"Current campaign set to {campaign_name}",
+        "text": f"Current campaign set to {aspect}",
     }
 
 
-def strange(metadata: QueryMetaData) -> Dict[str, str]:
+def strange(**kwargs) -> Dict[str, str]:
     return {
         "response_type": MESSAGE_RESPONSE_CHANNEL,
         "text": "Strange things are afoot at the Circle K.",
@@ -232,24 +260,28 @@ def strange(metadata: QueryMetaData) -> Dict[str, str]:
 
 
 # List of commands used to build out
-command_list: List[Command] = [
-    Command("default", "", default_response),
-    Command("help", "retrieves help info", help_message),
-    Command("add", "adds a given value to a given aspect.", add, is_modifier=True),
-    Command(
+command_dict: Dict[str, Command] = {
+    "default": Command("default", "", default_response),
+    "help": Command("help", "retrieves help info", help_message),
+    "add": Command(
+        "add", "adds a given value to a given aspect.", add, is_modifier=True
+    ),
+    "current": Command(
         "current",
         "retrieves the current value of a given aspect.",
         current,
         is_modifier=False,
     ),
-    Command(
+    "remove": Command(
         "remove", "removes a given value from a given aspect.", remove, is_modifier=True
     ),
-    Command(
+    "switch campaign to": Command(
         "switch campaign to",
         "switches the current campaign.",
         switch_campaign,
         is_modifier=True,
     ),
-    Command("movie quote please", "retrieves a strange response", strange),
-]
+    "movie quote please": Command(
+        "movie quote please", "retrieves a strange response", strange
+    ),
+}

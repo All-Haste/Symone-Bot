@@ -9,8 +9,7 @@ from slack_bolt import App
 from slack_bolt.adapter.google_cloud_functions import SlackRequestHandler
 from werkzeug import Request
 
-from symone_bot.aspects import aspect_list
-from symone_bot.commands import command_list
+from symone_bot.commands import command_dict
 from symone_bot.handler_source import HandlerSource
 from symone_bot.metadata import QueryMetaData
 from symone_bot.parser import QueryEvaluator
@@ -53,7 +52,9 @@ def symone_message(
 
     match handler_source:
         case HandlerSource.HELP:
-            response = SymoneResponse(command_list[1], metadata)
+            response = SymoneResponse(
+                command_dict.get("help"), metadata
+            )  # TODO migrate this to the normal flow
         case HandlerSource.ASPECT_QUERY:
             response = run_aspect_query(input_text, metadata)
 
@@ -67,7 +68,7 @@ def run_aspect_query(input_text, metadata):
     logging.debug(f"run_aspect_query: Received input: {input_text}")
     if not input_text:
         raise ValueError("Input text is empty.")
-    evaluator = QueryEvaluator(command_list, aspect_list)
+    evaluator = QueryEvaluator.get_evaluator()
     response = evaluator.parse(input_text)
     response.metadata = metadata
     return response
@@ -148,7 +149,7 @@ def custom_error_handler(error, body, logger, client, payload):
 
 @app.event("message")
 def handle_message_events(body, logger):
-    logger.info(body)
+    logger.debug(body)
 
 
 def handler(request: Request):
