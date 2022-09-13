@@ -4,7 +4,7 @@ import pytest
 
 from symone_bot.commands import Command
 from symone_bot.parser import QueryEvaluator, Token, generate_tokens
-from symone_bot.prepositions import preposition_dict
+from symone_bot.prepositions import preposition_dict, PrepositionType
 
 
 @pytest.fixture
@@ -94,6 +94,14 @@ def test__lookup_aspect(query_evaluator):
     assert aspect.name == "bar"
     assert aspect.help_info == "a bar aspect"
     assert aspect.value_type == int
+
+
+def test__lookup_preposition(query_evaluator):
+    prep_token = Token("PREP", "to")
+    prep = query_evaluator._lookup_preposition(prep_token)
+
+    assert prep.name == "to"
+    assert prep.preposition_type == PrepositionType.DIRECTIONAL
 
 
 @pytest.mark.parametrize(
