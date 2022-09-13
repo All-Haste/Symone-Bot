@@ -6,7 +6,6 @@ from symone_bot.commands import (
     add,
     default_response,
     help_message,
-    command_dict,
 )
 
 
@@ -36,7 +35,7 @@ def test_help_message(test_metadata, test_commands):
 
 def test_add_deny_unallowed_user(test_metadata, test_aspects, database_client):
     aspect = test_aspects.get("bar")
-    actual = add(test_metadata, aspect, 100)
+    actual = add(metadata=test_metadata, aspect=aspect, value=100)
 
     assert actual["response_type"] == "in_channel"
     assert actual["text"] == "Nice try..."
@@ -44,9 +43,8 @@ def test_add_deny_unallowed_user(test_metadata, test_aspects, database_client):
 
 def test_add(test_metadata, test_aspects, database_client):
     test_metadata.user_id = database_client.get_game_master()
-    add_command = command_dict.get("add")
     aspect = aspect_dict.get("xp")
-    actual = add_command.callable(test_metadata, aspect, 100)
+    actual = add(metadata=test_metadata, aspect=aspect, value=100)
 
     assert actual["response_type"] == "in_channel"
     assert actual["text"] == "Updated xp to 100"

@@ -25,9 +25,9 @@ def game_master_only(f: Callable) -> Callable:
     """
 
     @wraps(f)
-    def wrapper(*args):
-        metadata: QueryMetaData = args[0]
-        aspect = args[1]
+    def wrapper(**kwargs):
+        metadata: QueryMetaData = kwargs["metadata"]
+        aspect = kwargs["aspect"]
 
         database_client = DatabaseClient.get_client()
         if metadata.user_id != database_client.get_game_master():
@@ -39,7 +39,7 @@ def game_master_only(f: Callable) -> Callable:
                 "text": "Nice try...",
             }
         else:
-            return f(*args)
+            return f(**kwargs)
 
     return wrapper
 
@@ -52,8 +52,8 @@ def no_singleton_aspects(f: Callable) -> Callable:
     """
 
     @wraps(f)
-    def wrapper(*args):
-        aspect = args[1]
+    def wrapper(**kwargs):
+        aspect = kwargs["aspect"]
 
         if aspect.is_singleton:
             return {
@@ -61,7 +61,7 @@ def no_singleton_aspects(f: Callable) -> Callable:
                 "text": f"{aspect.name} is a singleton aspect, you can't add to it.",
             }
         else:
-            return f(*args)
+            return f(**kwargs)
 
     return wrapper
 
