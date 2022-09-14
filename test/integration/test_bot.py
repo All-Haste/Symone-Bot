@@ -56,3 +56,11 @@ class TestBot:
         response = symone_message(input_text, game_master, handler_source)
 
         assert response["text"] == expected_response
+
+    def test_help_interaction(self):
+        response = symone_message("What can you do Symone?", "1234", HandlerSource.HELP)
+        assert "help" in response["text"]
+
+    def test_interaction_with_blank_input(self):
+        with pytest.raises(ValueError):
+            symone_message("", "1234", HandlerSource.ASPECT_QUERY)

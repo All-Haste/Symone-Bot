@@ -1,6 +1,5 @@
 pytest
 pytest-cov
 pytest-mock
-pytest-dotenv
 testcontainers
 black[d]
