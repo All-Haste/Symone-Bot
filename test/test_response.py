@@ -45,7 +45,9 @@ def test_init_does_not_check_attributes_of_singleton_aspects():
         aspect = Aspect("bar", "", "", value_type=str, is_singleton=True)
         SymoneResponse(command, aspect=aspect, value=1)
     except AttributeError:
-        assert False, "Should not have raised AttributeError, singleton aspects do not have value types to check"
+        assert (
+            False
+        ), "Should not have raised AttributeError, singleton aspects do not have value types to check"
 
 
 def test_check_modifier_command_attributes_raises_when_value_type_is_none_and_value_is_not():

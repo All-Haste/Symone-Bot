@@ -211,3 +211,12 @@ def test__get_aspect(query_evaluator):
 
     assert aspect.name == "bar"
     assert value == 3
+
+
+def test__get_aspect_with_no_value(query_evaluator):
+    query_evaluator.tok = Token("ASPECT", "bar")
+    query_evaluator.tokens = iter([query_evaluator.tok])
+    aspect, value = query_evaluator.get_aspect()
+
+    assert aspect.name == "bar"
+    assert value is None
