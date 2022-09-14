@@ -54,7 +54,7 @@ class DatabaseClient:
             {"_id": current_game_context_id.id}
         )
         if game_context is None:
-            raise Exception("No current game context found.")
+            raise DatabaseClientException("No current game context found.")
         return game_context
 
     def get_context_by_campaign_name(self, campaign_name: str):
@@ -66,11 +66,13 @@ class DatabaseClient:
         """
         game_contexts = list(self.db.game_context.find({"name": campaign_name}))
         if len(game_contexts) == 0:
-            raise Exception(
+            raise DatabaseClientException(
                 "No campaign found with that name. Make sure case is correct"
             )
         elif len(game_contexts) > 1:
-            raise Exception("Multiple game_contexts found with that name.")
+            raise DatabaseClientException(
+                "Multiple game_contexts found with that name."
+            )
         return game_contexts[0]
 
     def get_game_master(self) -> str:
@@ -92,7 +94,7 @@ class DatabaseClient:
             {"tracking_context": True}
         )
         if context_tracker is None:
-            raise Exception("Could not locate context tracking entity.")
+            raise DatabaseClientException("Could not locate context tracking entity.")
 
         return context_tracker
 
@@ -120,3 +122,7 @@ class DatabaseClient:
                 }
             },
         )
+
+
+class DatabaseClientException(Exception):
+    pass

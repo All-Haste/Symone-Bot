@@ -19,13 +19,19 @@ if DEPLOYMENT_ENVIRONMENT == "prod":
 
     client = google.cloud.logging.Client()
     client.setup_logging()
-
-logging.basicConfig(
-    format="%(asctime)s\t%(levelname)s\t%(message)s",
-    datefmt="%m/%d/%Y %I:%M:%S %p",
-    stream=sys.stdout,
-    level=logging.DEBUG,
-)
+    logging.basicConfig(
+        format="%(asctime)s\t%(levelname)s\t%(message)s",
+        datefmt="%m/%d/%Y %I:%M:%S %p",
+        stream=sys.stdout,
+        level=logging.INFO,
+    )
+else:
+    logging.basicConfig(
+        format="%(asctime)s\t%(levelname)s\t%(message)s",
+        datefmt="%m/%d/%Y %I:%M:%S %p",
+        stream=sys.stdout,
+        level=logging.DEBUG,
+    )
 
 app = App(
     token=os.environ.get("SLACK_BOT_TOKEN"),

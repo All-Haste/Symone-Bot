@@ -157,14 +157,21 @@ class QueryEvaluator:
         return tok.replace('"', "")
 
     def _get_master_pattern(self):
-        cmds = ["\\b{}\\b".format(cmd.name) for cmd in self.commands.values()]
+        regex_word_list_with_boundary = "\\b{}\\b"
+        cmds = [
+            regex_word_list_with_boundary.format(command.name)
+            for command in self.commands.values()
+        ]
         command_match = "|".join(cmds)
         prepositions = [
-            "\\b{}\\b".format(preposition.name)
+            regex_word_list_with_boundary.format(preposition.name)
             for preposition in self.prepositions.values()
         ]
         preposition_match = "|".join(prepositions)
-        aspects = ["\\b{}\\b".format(aspect.name) for aspect in self.aspects.values()]
+        aspects = [
+            regex_word_list_with_boundary.format(aspect.name)
+            for aspect in self.aspects.values()
+        ]
         aspect_match = "|".join(aspects)
         cmd = r"(?P<CMD>{})".format(command_match)
         preposition = r"(?P<PREP>{})".format(preposition_match)

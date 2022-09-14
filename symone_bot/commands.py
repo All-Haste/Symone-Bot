@@ -126,7 +126,7 @@ def help_message(metadata: QueryMetaData, **kwargs) -> dict:
     logging.info(f"Default response triggered by user: {metadata.user_id}")
     text = """"""
     for command in command_dict.values():
-        if not command.callable == default_response:
+        if command.callable != default_response:
             text += f"{command.help()}\n"
     text += f"\nI am also tracking the following aspects: {', '.join([aspect.name for aspect in aspect_dict.values()])}"
     return {
