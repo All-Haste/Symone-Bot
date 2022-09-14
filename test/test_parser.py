@@ -97,6 +97,17 @@ def test_parse_throws_error_if_command_is_not_first(query, query_evaluator):
         query_evaluator.parse(query)
 
 
+def test__parse_with_preposition(query_evaluator):
+    response = query_evaluator.parse(
+        "foo 1000 to bar",
+    )
+
+    assert response.command.name == "foo"
+    assert response.aspect.name == "bar"
+    assert response.value == 1000
+    assert response.preposition.name == "to"
+
+
 def test__lookup_function(query_evaluator):
     cmd_token = Token("CMD", "foo")
     command = query_evaluator._lookup_command(cmd_token)
@@ -201,6 +212,15 @@ def test__get_preposition(query_evaluator):
 
     assert aspect.name == "bar"
     assert prep.name == "to"
+
+
+def test__get_preposition_raises_syntax_error_if_preposition_not_followed_by_aspect(
+    query_evaluator,
+):
+    query_evaluator.tok = Token("PREP", "to")
+    query_evaluator.tokens = iter([query_evaluator.tok])
+    with pytest.raises(SyntaxError):
+        query_evaluator.get_preposition()
 
 
 def test__get_aspect(query_evaluator):

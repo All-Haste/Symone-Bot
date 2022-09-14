@@ -108,13 +108,13 @@ class QueryEvaluator:
             self._expect("CMD")
             cmd_token = self.tok
             command = self._lookup_command(cmd_token)
+
             if self._accept("ASPECT"):
                 aspect, value = self.get_aspect()
-            elif self._accept("PREP"):
-                aspect, preposition = self.get_preposition()
-            else:
-                if self._accept("VALUE") or self._accept("STRING_VALUE"):
-                    value = self._extract_value_from_token(self.tok[1])
+            elif self._accept("VALUE") or self._accept("STRING_VALUE"):
+                value = self._extract_value_from_token(self.tok[1])
+                if self._accept("PREP"):
+                    aspect, preposition = self.get_preposition()
 
         logging.info(
             f"Parser: found Command: {command}, Aspect: {aspect}, Value: {value}"

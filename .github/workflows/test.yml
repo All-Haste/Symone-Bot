@@ -41,13 +41,12 @@ jobs:
     environment: Test Run
     needs: create-virtualenv
     runs-on: ubuntu-latest
-    env:
-      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-      SLACK_SIGNING_SECRET: ${{ secrets.SLACK_SIGNING_SECRET}}
     steps:
       - uses: actions/checkout@v1
       - uses: actions/setup-python@v2
       - uses: syphar/restore-virtualenv@v1
         id: cache-virtualenv
 
-      - run: py.test
+      - run: |
+          pytest . --cov=. --cov-report xml
+          coverage report --fail-under=99
