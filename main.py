@@ -52,9 +52,7 @@ def symone_message(
 
     match handler_source:
         case HandlerSource.HELP:
-            response = SymoneResponse(
-                command_dict.get("help"), metadata
-            )  # TODO migrate this to the normal flow
+            response = SymoneResponse(command_dict.get("help"), metadata)
         case HandlerSource.ASPECT_QUERY:
             response = run_aspect_query(input_text, metadata)
 

@@ -58,7 +58,7 @@ def no_singleton_aspects(f: Callable) -> Callable:
         if aspect.is_singleton:
             return {
                 "response_type": MESSAGE_RESPONSE_CHANNEL,
-                "text": f"{aspect.name} is a singleton aspect, you can't add to it.",
+                "text": f"{aspect.name} is a singleton aspect, you can't call `{f.__name__}` on it.",
             }
         else:
             return f(**kwargs)
@@ -151,13 +151,13 @@ def add(
     logging.info(f"Add triggered by user: {metadata.user_id}")
     database_client = DatabaseClient.get_client()
 
-    campaign = database_client.get_current_game_context()
-    current_aspect_value = campaign[aspect.database_key]
+    game_context = database_client.get_current_game_context()
+    current_aspect_value = game_context[aspect.database_key]
     if aspect.sub_database_key:
         current_aspect_value = current_aspect_value[aspect.sub_database_key]
     new_aspect_value = current_aspect_value + value
-    campaign[aspect.name] = new_aspect_value
-    database_client.update_game_context(campaign)
+    game_context[aspect.name] = new_aspect_value
+    database_client.update_game_context(game_context)
 
     logging.info(f"Updated {aspect.name} to {new_aspect_value}")
 
@@ -204,12 +204,14 @@ def remove(
     database_client = DatabaseClient.get_client()
     logging.info(f"Remove triggered by user: {metadata.user_id}")
 
-    campaign = database_client.get_current_game_context()
+    game_context = database_client.get_current_game_context()
 
-    current_aspect_value = campaign[aspect.name]
+    current_aspect_value = game_context[aspect.database_key]
+    if aspect.sub_database_key:
+        current_aspect_value = current_aspect_value[aspect.sub_database_key]
     new_aspect_value = current_aspect_value - value
-    campaign[aspect.name] = new_aspect_value
-    database_client.update_game_context(campaign)
+    game_context[aspect.name] = new_aspect_value
+    database_client.update_game_context(game_context)
 
     logging.info(f"Updated {aspect.name} to {new_aspect_value}")
 
@@ -219,44 +221,35 @@ def remove(
     }
 
 
-def switch_campaign(metadata: QueryMetaData, aspect: str, **kwargs) -> Dict[str, str]:
+def switch_campaign(metadata: QueryMetaData, value: str, **kwargs) -> Dict[str, str]:
     """
     Switches the campaign to the one specified.
 
     param metadata: QueryMetaData object containing the metadata for the request.
-    param campaign_name: Name of the campaign to switch to.
+    param value: Name of the campaign to switch to.
     return: dict containing the response to be sent to Slack.
     """
     database_client = DatabaseClient.get_client()
     logging.info(
-        f"Switch campaign triggered by user: {metadata.user_id}, campaign: '{aspect}'"
+        f"Switch campaign triggered by user: {metadata.user_id}, campaign: '{value}'"
     )
 
     try:
-        found_campaign = database_client.get_context_by_campaign_name(aspect)
+        found_campaign = database_client.get_context_by_campaign_name(value)
     except Exception as e:
-        logging.error(f"Error finding campaign: {aspect}")
+        logging.error(f"Error finding campaign: {value}")
         logging.exception(e)
         return {
             "response_type": MESSAGE_RESPONSE_CHANNEL,
-            "text": f"Error finding campaign: {e}",
+            "text": f"Error finding campaign: `{value}`, make sure case is correct.",
         }
-    current_campaign = database_client.get_current_context_id()
-    current_campaign["campaign_id"] = found_campaign.key.id_or_name
-    database_client.update_game_context(current_campaign)
+    database_client.update_active_game_context(found_campaign["_id"])
 
-    logging.info(f"Current campaign set to {aspect}")
+    logging.info(f"Current campaign set to {value}")
 
     return {
         "response_type": MESSAGE_RESPONSE_CHANNEL,
-        "text": f"Current campaign set to {aspect}",
-    }
-
-
-def strange(**kwargs) -> Dict[str, str]:
-    return {
-        "response_type": MESSAGE_RESPONSE_CHANNEL,
-        "text": "Strange things are afoot at the Circle K.",
+        "text": f"Current campaign set to {value}",
     }
 
 
@@ -281,8 +274,5 @@ command_dict: Dict[str, Command] = {
         "switches the current campaign.",
         switch_campaign,
         is_modifier=True,
-    ),
-    "movie quote please": Command(
-        "movie quote please", "retrieves a strange response", strange
     ),
 }

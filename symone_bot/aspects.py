@@ -1,7 +1,4 @@
-import os
 from typing import Type, Dict
-
-GAME_MASTER = os.getenv("GAME_MASTER")
 
 
 class Aspect:

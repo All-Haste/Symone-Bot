@@ -2,6 +2,7 @@ import os
 from typing import Any, Dict
 
 import pymongo
+from bson import DBRef, ObjectId
 from pymongo.server_api import ServerApi
 
 
@@ -48,9 +49,9 @@ class DatabaseClient:
 
         return: Dict containing the game context data.
         """
-        current_game_context_info = self.get_current_context_id()["active_context"]
+        current_game_context_id: DBRef = self.get_context_tracker()["active_context"]
         game_context = self.db.game_context.find_one(
-            {"_id": current_game_context_info.id}
+            {"_id": current_game_context_id.id}
         )
         if game_context is None:
             raise Exception("No current game context found.")
@@ -63,7 +64,7 @@ class DatabaseClient:
         param campaign_name: Name of the campaign to retrieve.
         return: Dict containing the game context data.
         """
-        game_contexts = self.db.game_context.find({"name": campaign_name})
+        game_contexts = list(self.db.game_context.find({"name": campaign_name}))
         if len(game_contexts) == 0:
             raise Exception(
                 "No campaign found with that name. Make sure case is correct"
@@ -81,19 +82,19 @@ class DatabaseClient:
         game_context = self.get_current_game_context()
         return game_context["game_master"]
 
-    def get_current_context_id(self) -> Dict[str, Any]:
+    def get_context_tracker(self):
         """
         Gets the entity that tracks the current game context from the database.
 
         return: Dict containing the game context data.
         """
-        current_context = self.db.current_game_context.find_one(
+        context_tracker = self.db.current_game_context.find_one(
             {"tracking_context": True}
         )
-        if current_context is None:
+        if context_tracker is None:
             raise Exception("Could not locate context tracking entity.")
 
-        return current_context
+        return context_tracker
 
     def update_game_context(self, game_context: Dict[str, Any]) -> None:
         """
@@ -103,3 +104,19 @@ class DatabaseClient:
         """
         update_filter = {"_id": game_context["_id"]}
         self.db.game_context.update_one(update_filter, {"$set": game_context})
+
+    def update_active_game_context(self, id_ref: ObjectId) -> None:
+        """
+        Updates the active game context in the database.
+
+        param id_ref: DBRef containing the game context ID.
+        """
+        context_tracker = self.get_context_tracker()
+        self.db.current_game_context.update_one(
+            {"_id": context_tracker["_id"]},
+            {
+                "$set": {
+                    "active_context": DBRef("game_context", id_ref, "symone_knowledge")
+                }
+            },
+        )

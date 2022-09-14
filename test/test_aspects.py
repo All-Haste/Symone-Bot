@@ -1,4 +1,4 @@
-from symone_bot.aspects import Aspect
+from symone_bot.aspects import Aspect, aspect_dict
 
 
 def test_aspect_help():
@@ -6,3 +6,8 @@ def test_aspect_help():
     actual = test_aspect.help()
 
     assert actual == "`foo`: a foo aspect."
+
+
+def test_campaign_aspect_is_singleton():
+    campaign_aspect = aspect_dict.get("campaign")
+    assert campaign_aspect.is_singleton
