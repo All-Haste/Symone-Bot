@@ -33,4 +33,5 @@ preposition_dict = {
     "into": Preposition("into", PrepositionType.DIRECTIONAL),
     "onto": Preposition("onto", PrepositionType.DIRECTIONAL),
     "to": Preposition("to", PrepositionType.DIRECTIONAL),
+    "from": Preposition("from", PrepositionType.DIRECTIONAL),
 }

@@ -13,9 +13,16 @@ class TestBot:
         "input_text, expected_response, handler_source",
         [
             ("add xp 1000", "Updated xp to 1000", HandlerSource.ASPECT_QUERY),
+            ("add 1000 to xp", "Updated xp to 1000", HandlerSource.ASPECT_QUERY),
             ("add gold 1000", "Updated gold to 2000", HandlerSource.ASPECT_QUERY),
+            ("add 1000 to gold", "Updated gold to 2000", HandlerSource.ASPECT_QUERY),
             (
                 "add xp_target 1000",
+                "Updated xp_target to 1500",
+                HandlerSource.ASPECT_QUERY,
+            ),
+            (
+                "add 1000 to xp_target",
                 "Updated xp_target to 1500",
                 HandlerSource.ASPECT_QUERY,
             ),
@@ -24,15 +31,32 @@ class TestBot:
                 "Updated party_size to 10",
                 HandlerSource.ASPECT_QUERY,
             ),
+            (
+                "add 5 to party_size",
+                "Updated party_size to 10",
+                HandlerSource.ASPECT_QUERY,
+            ),
             ("remove xp 1000", "Reduced xp to -1000", HandlerSource.ASPECT_QUERY),
+            ("remove 1000 from xp", "Reduced xp to -1000", HandlerSource.ASPECT_QUERY),
             ("remove gold 1000", "Reduced gold to 0", HandlerSource.ASPECT_QUERY),
+            ("remove 1000 from gold", "Reduced gold to 0", HandlerSource.ASPECT_QUERY),
             (
                 "remove xp_target 1000",
                 "Reduced xp_target to -500",
                 HandlerSource.ASPECT_QUERY,
             ),
             (
+                "remove 1000 from xp_target",
+                "Reduced xp_target to -500",
+                HandlerSource.ASPECT_QUERY,
+            ),
+            (
                 "remove party_size 5",
+                "Reduced party_size to 0",
+                HandlerSource.ASPECT_QUERY,
+            ),
+            (
+                "remove 5 from party_size",
                 "Reduced party_size to 0",
                 HandlerSource.ASPECT_QUERY,
             ),
