@@ -3,17 +3,14 @@ import os
 import random
 import re
 import sys
-from typing import Dict
 
 from slack_bolt import App
 from slack_bolt.adapter.google_cloud_functions import SlackRequestHandler
 from werkzeug import Request
 
-from symone_bot.commands import command_dict
+from symone_bot.util import mocking_spongebob_reply
+from symone_bot.bot_ingress import symone_message
 from symone_bot.handler_source import HandlerSource
-from symone_bot.metadata import QueryMetaData
-from symone_bot.parser import QueryEvaluator
-from symone_bot.response import SymoneResponse
 
 DEPLOYMENT_ENVIRONMENT = os.environ.get("DEPLOYMENT_ENVIRONMENT", "local")
 
@@ -29,48 +26,6 @@ logging.basicConfig(
     stream=sys.stdout,
     level=logging.DEBUG,
 )
-
-
-def symone_message(
-    input_text: str, user_id: str, handler_source: HandlerSource
-) -> Dict[str, str]:
-    """
-    This is the main function that is called when a message is received from Slack.
-    param input_text: text of the message
-    param user_id: id of the user who sent the message
-    param handler_source: event handler type that called this function
-    return: response sent to Slack
-    """
-    response = {
-        "response_type": "ephemeral",
-        "text": "Sorry, Slack told me your user ID is blank? That's weird. Please try again.",
-    }
-    if user_id is None:
-        return response
-
-    metadata = QueryMetaData(user_id)
-
-    match handler_source:
-        case HandlerSource.HELP:
-            response = SymoneResponse(command_dict.get("help"), metadata)
-        case HandlerSource.ASPECT_QUERY:
-            response = run_aspect_query(input_text, metadata)
-
-    return response.get()
-
-
-def run_aspect_query(input_text, metadata):
-    """
-    Evaluates the input text as an aspect query and returns a SymoneResponse object..
-    """
-    logging.debug(f"run_aspect_query: Received input: {input_text}")
-    if not input_text:
-        raise ValueError("Input text is empty.")
-    evaluator = QueryEvaluator.get_evaluator()
-    response = evaluator.parse(input_text)
-    response.metadata = metadata
-    return response
-
 
 app = App(
     token=os.environ.get("SLACK_BOT_TOKEN"),
@@ -106,21 +61,6 @@ def message_did_they_level_up(message, say):
     else:
         reply = "No :arms_crossed:"
     say(reply)
-
-
-def mocking_spongebob_reply(message):
-    """
-    Returns a mocking spongebob reply.
-
-    param message: message received from Slack
-    return: mocking spongebob reply
-    """
-    original_text = message.get("text")
-    mocking_text = "".join(
-        [x.upper() if i % 2 else x.lower() for i, x in enumerate(original_text)]
-    )
-    reply = f':spongebob-mocking: "{mocking_text}" :spongebob-mocking:'
-    return reply
 
 
 @app.message(re.compile("Symone, (.*)", re.IGNORECASE))

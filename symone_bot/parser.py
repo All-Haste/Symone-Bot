@@ -40,8 +40,8 @@ class QueryEvaluator:
         aspects: Dict[str, Aspect],
     ):
         self.tokens = None
-        self.tok = None
-        self.nexttok = None
+        self.current_token = None
+        self.next_token = None
         self.commands = commands
         self.prepositions = prepositions
         self.aspects = aspects
@@ -74,18 +74,18 @@ class QueryEvaluator:
         """
         master_pattern = self._get_master_pattern()
         self.tokens = generate_tokens(query, master_pattern)
-        self.tok = None  # Last symbol consumed
-        self.nexttok = None  # Next symbol tokenized
+        self.current_token = None  # pragma: no mutate
+        self.next_token = None  # pragma: no mutate
         self._advance()  # Load first lookahead token
         return self._get_response()
 
     def _advance(self):
         """Advance one token ahead"""
-        self.tok, self.nexttok = self.nexttok, next(self.tokens, None)
+        self.current_token, self.next_token = self.next_token, next(self.tokens, None)
 
     def _accept(self, toktype: str):
         """Test and consume the next token if it matches toktype"""
-        if self.nexttok and self.nexttok.type == toktype:
+        if self.next_token and self.next_token.type == toktype:
             self._advance()
             return True
         else:
@@ -101,18 +101,18 @@ class QueryEvaluator:
         preposition = None
         aspect = None
         value = None
-        if self.nexttok is None:
+        if self.next_token is None:
             command = self._lookup_command(Token("CMD", "default"))
         else:
             # the first token must be a command
             self._expect("CMD")
-            cmd_token = self.tok
+            cmd_token = self.current_token
             command = self._lookup_command(cmd_token)
 
             if self._accept("ASPECT"):
                 aspect, value = self.get_aspect()
             elif self._accept("VALUE") or self._accept("STRING_VALUE"):
-                value = self._extract_value_from_token(self.tok[1])
+                value = self._extract_value_from_token(self.current_token[1])
                 if self._accept("PREP"):
                     aspect, preposition = self.get_preposition()
 
@@ -128,7 +128,7 @@ class QueryEvaluator:
         Parses a preposition token and returns it as a Preposition object,
         as well as returning an Aspect and value, since they are required
         """
-        preposition_token = self.tok
+        preposition_token = self.current_token
         preposition = self._lookup_preposition(preposition_token)
         if self._accept("ASPECT"):
             aspect, _ = self.get_aspect()
@@ -142,10 +142,10 @@ class QueryEvaluator:
         as well as returning a value, if it's present.
         """
         value = None
-        aspect_token = self.tok
+        aspect_token = self.current_token
         aspect = self._lookup_aspect(aspect_token)
         if self._accept("VALUE") or self._accept("STRING_VALUE"):
-            value = self._extract_value_from_token(self.tok[1])
+            value = self._extract_value_from_token(self.current_token[1])
         return aspect, value
 
     @staticmethod

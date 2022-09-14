@@ -23,7 +23,7 @@ def test_aspects():
     return {"bar": Aspect("bar", "a bar aspect", "bar", value_type=int)}
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def mongodb():
     with MongoDbContainer("mongo:6.0.1") as mongo:
         db = mongo.get_connection_client().symone_knowledge

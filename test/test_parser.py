@@ -14,8 +14,8 @@ def query_evaluator(test_commands, test_aspects):
 
 def test__evaluator_initial_state(query_evaluator, test_commands, test_aspects):
     assert query_evaluator.tokens is None
-    assert query_evaluator.tok is None
-    assert query_evaluator.nexttok is None
+    assert query_evaluator.current_token is None
+    assert query_evaluator.next_token is None
     assert query_evaluator.commands == test_commands
     assert query_evaluator.prepositions == preposition_dict
     assert query_evaluator.aspects == test_aspects
@@ -205,9 +205,11 @@ def test__get_value(input_string, expected):
 
 
 def test__get_preposition(query_evaluator):
-    query_evaluator.tok = Token("PREP", "to")
-    query_evaluator.nexttok = Token("ASPECT", "bar")
-    query_evaluator.tokens = iter([query_evaluator.tok, query_evaluator.nexttok])
+    query_evaluator.current_token = Token("PREP", "to")
+    query_evaluator.next_token = Token("ASPECT", "bar")
+    query_evaluator.tokens = iter(
+        [query_evaluator.current_token, query_evaluator.next_token]
+    )
     aspect, prep = query_evaluator.get_preposition()
 
     assert aspect.name == "bar"
@@ -217,16 +219,18 @@ def test__get_preposition(query_evaluator):
 def test__get_preposition_raises_syntax_error_if_preposition_not_followed_by_aspect(
     query_evaluator,
 ):
-    query_evaluator.tok = Token("PREP", "to")
-    query_evaluator.tokens = iter([query_evaluator.tok])
+    query_evaluator.current_token = Token("PREP", "to")
+    query_evaluator.tokens = iter([query_evaluator.current_token])
     with pytest.raises(SyntaxError):
         query_evaluator.get_preposition()
 
 
 def test__get_aspect(query_evaluator):
-    query_evaluator.tok = Token("ASPECT", "bar")
-    query_evaluator.nexttok = Token("VALUE", "3")
-    query_evaluator.tokens = iter([query_evaluator.tok, query_evaluator.nexttok])
+    query_evaluator.current_token = Token("ASPECT", "bar")
+    query_evaluator.next_token = Token("VALUE", "3")
+    query_evaluator.tokens = iter(
+        [query_evaluator.current_token, query_evaluator.next_token]
+    )
     aspect, value = query_evaluator.get_aspect()
 
     assert aspect.name == "bar"
@@ -234,8 +238,8 @@ def test__get_aspect(query_evaluator):
 
 
 def test__get_aspect_with_no_value(query_evaluator):
-    query_evaluator.tok = Token("ASPECT", "bar")
-    query_evaluator.tokens = iter([query_evaluator.tok])
+    query_evaluator.current_token = Token("ASPECT", "bar")
+    query_evaluator.tokens = iter([query_evaluator.current_token])
     aspect, value = query_evaluator.get_aspect()
 
     assert aspect.name == "bar"

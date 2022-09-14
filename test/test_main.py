@@ -1,4 +1,4 @@
-from main import symone_message
+from symone_bot.bot_ingress import symone_message
 from symone_bot.commands import MESSAGE_RESPONSE_EPHEMERAL
 from symone_bot.handler_source import HandlerSource
 
