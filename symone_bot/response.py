@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
 from symone_bot.aspects import Aspect
-from symone_bot.commands import Command
+from symone_bot.commands import Command, command_dict
 from symone_bot.metadata import QueryMetaData
 from symone_bot.prepositions import Preposition
 
@@ -42,8 +42,7 @@ class SymoneResponse:
 
         self.value = value
 
-    @staticmethod
-    def check_modifier_command_attributes(aspect, value):
+    def check_modifier_command_attributes(self, aspect, value):
         """
         Checks that the aspect and value are valid for a modifier command.
 
@@ -51,13 +50,9 @@ class SymoneResponse:
         param value: Value to be set for the aspect.
         """
         if aspect.value_type is None and value is not None:
-            raise AttributeError(
-                f"Aspect value type ({aspect.value_type}) does not match supplied type ({type(value)})"
-            )
+            self.command = command_dict["default"]
         if aspect.value_type is not None and not isinstance(value, aspect.value_type):
-            raise AttributeError(
-                f"Aspect value type ({aspect.value_type}) does not match supplied type ({type(value)})"
-            )
+            self.command = command_dict["default"]
 
     def get(self) -> Dict[str, str]:
         """

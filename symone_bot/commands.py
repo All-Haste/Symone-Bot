@@ -17,6 +17,37 @@ MESSAGE_RESPONSE_EPHEMERAL = "ephemeral"
 # Set next level (plus set xp... might avoid having to build an xp table..)
 
 
+def assert_aspect_and_value(f: Callable) -> Callable:
+    """
+    Decorator that checks if the supplied aspect is NoneType or not.
+
+    param f: Callable to be decorated.
+    return: Callable to be executed, or a default response if the aspect is NoneType.
+    """
+
+    @wraps(f)
+    def wrapper(**kwargs):
+        aspect = kwargs.get("aspect")
+        value = kwargs.get("value")
+        if aspect:
+            if aspect.is_singleton or not value:
+                return f(**kwargs)
+            elif value and isinstance(value, aspect.value_type):
+                return f(**kwargs)
+            else:
+                return {
+                    "response_type": MESSAGE_RESPONSE_CHANNEL,
+                    "text": f"I can't use '{value}' with {aspect.name}. It doesn't make sense.",
+                }
+        else:
+            return {
+                "response_type": MESSAGE_RESPONSE_CHANNEL,
+                "text": "I'm not sure what aspect you're trying to modify.",
+            }
+
+    return wrapper
+
+
 def game_master_only(f: Callable) -> Callable:
     """
     Decorator to check if the user is the game master before executing the command.
@@ -55,7 +86,7 @@ def no_singleton_aspects(f: Callable) -> Callable:
     def wrapper(**kwargs):
         aspect = kwargs["aspect"]
 
-        if aspect.is_singleton:
+        if aspect and aspect.is_singleton:
             return {
                 "response_type": MESSAGE_RESPONSE_CHANNEL,
                 "text": f"{aspect.name} is a singleton aspect, you can't call `{f.__name__}` on it.",
@@ -184,6 +215,7 @@ def _add_and_remove_handler(
     return new_aspect_value
 
 
+@assert_aspect_and_value
 @game_master_only
 @no_singleton_aspects
 def add(
@@ -197,6 +229,7 @@ def add(
     param value: Value to be added to the aspect.
     return: dict containing the response to be sent to Slack.
     """
+
     response = {}
     logging.info(f"Add triggered by user: {metadata.user_id}")
     new_aspect_value = _add_and_remove_handler(aspect, value, "+")
@@ -229,6 +262,7 @@ def compute_level_up(new_aspect_value, response):
     return response
 
 
+@assert_aspect_and_value
 def current(metadata: QueryMetaData, aspect: Aspect, **kwargs) -> Dict[str, str]:
     """
     Gets the current aspect value.
@@ -250,6 +284,7 @@ def current(metadata: QueryMetaData, aspect: Aspect, **kwargs) -> Dict[str, str]
     }
 
 
+@assert_aspect_and_value
 @game_master_only
 @no_singleton_aspects
 def remove(
@@ -273,6 +308,7 @@ def remove(
     }
 
 
+@assert_aspect_and_value
 @game_master_only
 def set_aspect(
     metadata: QueryMetaData, aspect: Aspect, value: Union[str, int], **kwargs

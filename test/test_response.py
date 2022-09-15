@@ -50,18 +50,24 @@ def test_init_does_not_check_attributes_of_singleton_aspects():
         ), "Should not have raised AttributeError, singleton aspects do not have value types to check"
 
 
-def test_check_modifier_command_attributes_raises_when_value_type_is_none_and_value_is_not():
-    with pytest.raises(AttributeError):
-        aspect = Aspect("bar", "", "", value_type=None)
-        value = "foo"
-        SymoneResponse.check_modifier_command_attributes(aspect, value)
+def test_check_modifier_command_attributes_returns_default_when_value_type_is_none_and_value_is_not():
+    command = Command("default", "", current, is_modifier=True)
+    aspect = Aspect("bar", "", "", value_type=None)
+    value = 1
+    response = SymoneResponse(command, aspect=aspect, value=1)
+    response.check_modifier_command_attributes(aspect, value)
+
+    assert response.command.name == "default"
 
 
 def test_check_modifier_command_attributes_raises_when_mismatched_types():
-    with pytest.raises(AttributeError):
-        aspect = Aspect("bar", "", "", value_type=str)
-        value = 1
-        SymoneResponse.check_modifier_command_attributes(aspect, value)
+    command = Command("default", "", current, is_modifier=True)
+    aspect = Aspect("bar", "", "", value_type=str)
+    value = 1
+    response = SymoneResponse(command, aspect=aspect, value=1)
+    response.check_modifier_command_attributes(aspect, value)
+
+    assert response.command.name == "default"
 
 
 def test_init_rejects_nonetype_command():

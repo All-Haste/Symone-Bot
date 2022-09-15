@@ -126,7 +126,6 @@ class TestBot:
     @pytest.mark.parametrize(
         "input_text",
         [
-            "add 30 chickens",
             "add 10 to gold",
             "add 10 to xp_target",
         ],
@@ -139,6 +138,41 @@ class TestBot:
         )
 
         assert response["text"] == "Nice try..."
+
+    @pytest.mark.parametrize(
+        "input_text",
+        [
+            "add 30 chickens",
+            "add dog cat",
+            "add cat 10",
+        ],
+    )
+    def test_nonexistent_aspects(self, game_master, input_text):
+        response = symone_message(
+            input_text,
+            game_master,
+            HandlerSource.ASPECT_QUERY,
+        )
+
+        assert response["text"] == "I'm not sure what aspect you're trying to modify."
+
+    @pytest.mark.parametrize(
+        "input_text",
+        [
+            "add xp_target dog",
+            "remove xp cat",
+            "set gold sheep",
+            "set xp_target san diego",
+        ],
+    )
+    def test_bad_value_for_aspect(self, game_master, input_text):
+        response = symone_message(
+            input_text,
+            game_master,
+            HandlerSource.ASPECT_QUERY,
+        )
+
+        assert response["text"] == "I'm sorry, I don't understand."
 
     def test_help_interaction(self):
         response = symone_message("What can you do Symone?", "1234", HandlerSource.HELP)
