@@ -110,11 +110,11 @@ class QueryEvaluator:
             command = self._lookup_command(cmd_token)
 
             if self._accept("ASPECT"):
-                aspect, value = self.get_aspect()
+                aspect, value, preposition = self.get_aspect()
             elif self._accept("VALUE") or self._accept("STRING_VALUE"):
                 value = self._extract_value_from_token(self.current_token[1])
                 if self._accept("PREP"):
-                    aspect, preposition = self.get_preposition()
+                    preposition, aspect = self.get_preposition_then_aspect()
 
         logging.info(
             f"Parser: found Command: {command}, Aspect: {aspect}, Value: {value}"
@@ -123,7 +123,7 @@ class QueryEvaluator:
             command, aspect=aspect, value=value, preposition=preposition
         )
 
-    def get_preposition(self) -> Tuple[Aspect, Preposition]:
+    def get_preposition_then_aspect(self) -> Tuple[Preposition, Aspect]:
         """
         Parses a preposition token and returns it as a Preposition object,
         as well as returning an Aspect and value, since they are required
@@ -131,22 +131,37 @@ class QueryEvaluator:
         preposition_token = self.current_token
         preposition = self._lookup_preposition(preposition_token)
         if self._accept("ASPECT"):
-            aspect, _ = self.get_aspect()
+            aspect, _, _ = self.get_aspect()
         else:
             raise SyntaxError("Expected aspect and value after preposition")
-        return aspect, preposition
+        return preposition, aspect
 
-    def get_aspect(self) -> Tuple[Aspect, Union[str, int]]:
+    def get_preposition_then_value(self) -> Tuple[Preposition, Union[str, int]]:
+        """
+        Parses a preposition token and returns it as a Preposition object,
+        as well as returning a value, if it's present.
+        """
+        value = None
+        preposition_token = self.current_token
+        preposition = self._lookup_preposition(preposition_token)
+        if self._accept("VALUE") or self._accept("STRING_VALUE"):
+            value = self._extract_value_from_token(self.current_token[1])
+        return preposition, value
+
+    def get_aspect(self) -> Tuple[Aspect, Union[str, int], Preposition]:
         """
         Parses an aspect token and returns it as an Aspect object,
         as well as returning a value, if it's present.
         """
         value = None
+        preposition = None
         aspect_token = self.current_token
         aspect = self._lookup_aspect(aspect_token)
         if self._accept("VALUE") or self._accept("STRING_VALUE"):
             value = self._extract_value_from_token(self.current_token[1])
-        return aspect, value
+        elif self._accept("PREP"):
+            preposition, value = self.get_preposition_then_value()
+        return aspect, value, preposition
 
     @staticmethod
     def _extract_value_from_token(tok: str) -> Union[int, str]:

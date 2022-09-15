@@ -1,6 +1,6 @@
 import logging
 from functools import wraps
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, Union
 
 from symone_bot.aspects import Aspect, aspect_dict
 from symone_bot.data import DatabaseClient
@@ -135,6 +135,55 @@ def help_message(metadata: QueryMetaData, **kwargs) -> dict:
     }
 
 
+def _compute_new_value(current_aspect_value, value, operator):
+    """
+    Computes the new value for an aspect.
+
+    param current_aspect_value: Current value of the aspect.
+    param value: Value to be added or subtracted.
+    param operator: Operator to be used to compute the new value.
+    return: New value for the aspect.
+    """
+    if operator == "+":
+        return current_aspect_value + value
+    elif operator == "-":
+        return current_aspect_value - value
+    else:
+        raise ValueError("Operator must be either '+' or '-'.")
+
+
+def _add_and_remove_handler(
+    aspect: Aspect, value: Union[str, int], operator: str
+) -> Union[str, int]:
+    """
+    Handles the logic for adding and removing values from aspects.
+
+    param aspect: aspect to be modified.
+    param value: value to be added or removed.
+    param operator: operator to be used to compute the new value.
+    return: new value for the aspect.
+    """
+    if operator not in ["+", "-"]:
+        raise ValueError("Operator must be either '+' or '-'.")
+    database_client = DatabaseClient.get_client()
+
+    game_context = database_client.get_current_game_context()
+
+    if aspect.sub_database_key:
+        current_aspect_value = game_context[aspect.database_key][
+            aspect.sub_database_key
+        ]
+        new_aspect_value = _compute_new_value(current_aspect_value, value, operator)
+        game_context[aspect.database_key][aspect.sub_database_key] = new_aspect_value
+    else:
+        current_aspect_value = game_context[aspect.database_key]
+        new_aspect_value = _compute_new_value(current_aspect_value, value, operator)
+        game_context[aspect.database_key] = new_aspect_value
+
+    database_client.update_game_context(game_context)
+    return new_aspect_value
+
+
 @game_master_only
 @no_singleton_aspects
 def add(
@@ -148,23 +197,36 @@ def add(
     param value: Value to be added to the aspect.
     return: dict containing the response to be sent to Slack.
     """
+    response = {}
     logging.info(f"Add triggered by user: {metadata.user_id}")
-    database_client = DatabaseClient.get_client()
-
-    game_context = database_client.get_current_game_context()
-    current_aspect_value = game_context[aspect.database_key]
-    if aspect.sub_database_key:
-        current_aspect_value = current_aspect_value[aspect.sub_database_key]
-    new_aspect_value = current_aspect_value + value
-    game_context[aspect.name] = new_aspect_value
-    database_client.update_game_context(game_context)
+    new_aspect_value = _add_and_remove_handler(aspect, value, "+")
+    if aspect.name == "xp":
+        response = compute_level_up(new_aspect_value, response)
 
     logging.info(f"Updated {aspect.name} to {new_aspect_value}")
 
-    return {
-        "response_type": MESSAGE_RESPONSE_CHANNEL,
-        "text": f"Updated {aspect.name} to {new_aspect_value}",
-    }
+    if not response:
+        response = {
+            "response_type": MESSAGE_RESPONSE_CHANNEL,
+            "text": f"Updated {aspect.name} to {new_aspect_value}",
+        }
+    return response
+
+
+def compute_level_up(new_aspect_value, response):
+    database_client = DatabaseClient.get_client()
+    game_context = database_client.get_current_game_context()
+    party = game_context["party"]
+    level = party["level"]
+    xp_target = party["xp_for_level_up"]
+    if new_aspect_value >= xp_target:
+        game_context["party"]["level"] = level + 1
+        database_client.update_game_context(game_context)
+        response = {
+            "response_type": MESSAGE_RESPONSE_CHANNEL,
+            "text": f"Updated xp to {new_aspect_value}. The party leveled up! :tada: You're now level {level + 1}!",
+        }
+    return response
 
 
 def current(metadata: QueryMetaData, aspect: Aspect, **kwargs) -> Dict[str, str]:
@@ -201,23 +263,43 @@ def remove(
     param value: Value to be removed from the aspect.
     return: dict containing the response to be sent to Slack.
     """
-    database_client = DatabaseClient.get_client()
     logging.info(f"Remove triggered by user: {metadata.user_id}")
-
-    game_context = database_client.get_current_game_context()
-
-    current_aspect_value = game_context[aspect.database_key]
-    if aspect.sub_database_key:
-        current_aspect_value = current_aspect_value[aspect.sub_database_key]
-    new_aspect_value = current_aspect_value - value
-    game_context[aspect.name] = new_aspect_value
-    database_client.update_game_context(game_context)
-
+    new_aspect_value = _add_and_remove_handler(aspect, value, "-")
     logging.info(f"Updated {aspect.name} to {new_aspect_value}")
 
     return {
         "response_type": MESSAGE_RESPONSE_CHANNEL,
         "text": f"Reduced {aspect.name} to {new_aspect_value}",
+    }
+
+
+@game_master_only
+def set_aspect(
+    metadata: QueryMetaData, aspect: Aspect, value: Union[str, int], **kwargs
+) -> Dict[str, str]:
+    """
+    Sets the aspect to the supplied value.
+
+    param metadata: QueryMetaData object containing the metadata for the request.
+    param value: Value to set the aspect to.
+    return: dict containing the response to be sent to Slack.
+    """
+    database_client = DatabaseClient.get_client()
+    logging.info(f"Set triggered by user: {metadata.user_id}")
+
+    game_context = database_client.get_current_game_context()
+
+    if aspect.sub_database_key:
+        game_context[aspect.database_key][aspect.sub_database_key] = value
+    else:
+        game_context[aspect.database_key] = value
+    database_client.update_game_context(game_context)
+
+    logging.info(f"Updated {aspect.name} to {value}")
+
+    return {
+        "response_type": MESSAGE_RESPONSE_CHANNEL,
+        "text": f"Set {aspect.name} to {value}",
     }
 
 
@@ -268,6 +350,9 @@ command_dict: Dict[str, Command] = {
     ),
     "remove": Command(
         "remove", "removes a given value from a given aspect.", remove, is_modifier=True
+    ),
+    "set": Command(
+        "set", "sets a given aspect to a given value.", set_aspect, is_modifier=True
     ),
     "switch campaign to": Command(
         "switch campaign to",

@@ -210,7 +210,7 @@ def test__get_preposition(query_evaluator):
     query_evaluator.tokens = iter(
         [query_evaluator.current_token, query_evaluator.next_token]
     )
-    aspect, prep = query_evaluator.get_preposition()
+    prep, aspect = query_evaluator.get_preposition_then_aspect()
 
     assert aspect.name == "bar"
     assert prep.name == "to"
@@ -222,7 +222,7 @@ def test__get_preposition_raises_syntax_error_if_preposition_not_followed_by_asp
     query_evaluator.current_token = Token("PREP", "to")
     query_evaluator.tokens = iter([query_evaluator.current_token])
     with pytest.raises(SyntaxError):
-        query_evaluator.get_preposition()
+        query_evaluator.get_preposition_then_aspect()
 
 
 def test__get_aspect(query_evaluator):
@@ -231,7 +231,7 @@ def test__get_aspect(query_evaluator):
     query_evaluator.tokens = iter(
         [query_evaluator.current_token, query_evaluator.next_token]
     )
-    aspect, value = query_evaluator.get_aspect()
+    aspect, value, _ = query_evaluator.get_aspect()
 
     assert aspect.name == "bar"
     assert value == 3
@@ -240,7 +240,7 @@ def test__get_aspect(query_evaluator):
 def test__get_aspect_with_no_value(query_evaluator):
     query_evaluator.current_token = Token("ASPECT", "bar")
     query_evaluator.tokens = iter([query_evaluator.current_token])
-    aspect, value = query_evaluator.get_aspect()
+    aspect, value, _ = query_evaluator.get_aspect()
 
     assert aspect.name == "bar"
     assert value is None

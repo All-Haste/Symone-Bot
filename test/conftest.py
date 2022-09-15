@@ -1,3 +1,5 @@
+from typing import Dict, Any
+
 import pytest
 from bson import DBRef
 from testcontainers.mongodb import MongoDbContainer
@@ -23,28 +25,51 @@ def test_aspects():
     return {"bar": Aspect("bar", "a bar aspect", "bar", value_type=int)}
 
 
-@pytest.fixture(scope="module")
-def mongodb():
+@pytest.fixture(scope="session")
+def sample_game_context_1() -> Dict[str, Any]:
+    return {
+        "kind": "campaign",
+        "name": "Against the Aeon Throne",
+        "game_master": "U72P1S26N",
+        "currency": {"quantity": 1000, "type": "credits"},
+        "party": {
+            "name": "",
+            "size": 5,
+            "level": 1,
+            "xp": 0,
+            "xp_for_level_up": 500,
+            "members": {},
+        },
+        "loot": {},
+        "system": {"name": "Starfinder", "version": 1},
+    }
+
+
+@pytest.fixture(scope="session")
+def sample_game_context_2() -> Dict[str, Any]:
+    return {
+        "kind": "campaign",
+        "name": "Rise of Tiamat",
+        "game_master": "U72P1S26N",
+        "currency": {"quantity": 999, "type": "gold"},
+        "party": {
+            "name": "The Dragon Getters",
+            "size": 3,
+            "level": 1,
+            "xp": 0,
+            "xp_for_level_up": 500,
+            "members": {},
+        },
+        "loot": {},
+        "system": {"name": "Dungeons & Dragons", "version": 5},
+    }
+
+
+@pytest.fixture(scope="session")
+def mongodb(sample_game_context_1, sample_game_context_2):
     with MongoDbContainer("mongo:6.0.1") as mongo:
         db = mongo.get_connection_client().symone_knowledge
-        result = db.game_context.insert_one(
-            {
-                "kind": "campaign",
-                "name": "Against the Aeon Throne",
-                "game_master": "U72P1S26N",
-                "currency": {"quantity": 1000, "type": "credits"},
-                "party": {
-                    "name": "",
-                    "size": 5,
-                    "level": 1,
-                    "xp": 0,
-                    "xp_for_level_up": 500,
-                    "members": {},
-                },
-                "loot": {},
-                "system": {"name": "Starfinder", "version": 1},
-            },
-        )
+        result = db.game_context.insert_one(sample_game_context_1)
         db.current_game_context.insert_one(
             {
                 "tracking_context": True,
@@ -53,24 +78,7 @@ def mongodb():
                 ),
             }
         )
-        db.game_context.insert_one(
-            {
-                "kind": "campaign",
-                "name": "Rise of Tiamat",
-                "game_master": "U72P1S26N",
-                "currency": {"quantity": 999, "type": "gold"},
-                "party": {
-                    "name": "The Dragon Getters",
-                    "size": 3,
-                    "level": 1,
-                    "xp": 0,
-                    "xp_for_level_up": 500,
-                    "members": {},
-                },
-                "loot": {},
-                "system": {"name": "Dungeons & Dragons", "version": 5},
-            },
-        )
+        db.game_context.insert_one(sample_game_context_2)
         yield db
 
 
@@ -82,3 +90,23 @@ def database_client(mongodb):
         mongo_host=f"{mongodb.client.address[0]}:{mongodb.client.address[1]}",
         mongo_scheme="mongodb",
     )
+
+
+@pytest.fixture(autouse=True)
+def reset_data(sample_game_context_1, sample_game_context_2, mongodb):
+    """
+    Resets the database to a known state before each test.
+    """
+    mongodb.game_context.delete_many({})
+    mongodb.current_game_context.delete_many({})
+    result = mongodb.game_context.insert_one(sample_game_context_1)
+    mongodb.current_game_context.insert_one(
+        {
+            "tracking_context": True,
+            "active_context": DBRef(
+                "game_context", result.inserted_id, "symone_knowledge"
+            ),
+        }
+    )
+    mongodb.game_context.insert_one(sample_game_context_2)
+    yield

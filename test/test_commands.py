@@ -9,6 +9,9 @@ from symone_bot.commands import (
     current,
     remove,
     switch_campaign,
+    _compute_new_value,
+    _add_and_remove_handler,
+    set_aspect,
 )
 
 
@@ -54,7 +57,7 @@ def test_add_deny_unallowed_user(test_metadata, test_aspects, database_client):
     assert actual["text"] == "Nice try..."
 
 
-def test_add(test_metadata, database_client):
+def test_add(test_metadata, database_client, sample_game_context_1):
     test_metadata.user_id = database_client.get_game_master()
     aspect = aspect_dict.get("xp")
     actual = add(metadata=test_metadata, aspect=aspect, value=100)
@@ -122,6 +125,14 @@ def test_remove_from_singleton_aspect_should_reject(test_metadata, database_clie
     )
 
 
+def test_set_deny_unallowed_user(test_metadata, test_aspects, database_client):
+    aspect = test_aspects.get("bar")
+    actual = set_aspect(metadata=test_metadata, aspect=aspect, value=100)
+
+    assert actual["response_type"] == "in_channel"
+    assert actual["text"] == "Nice try..."
+
+
 def test_switch_campaign(test_metadata, database_client):
     actual = switch_campaign(metadata=test_metadata, value="Rise of Tiamat")
 
@@ -138,3 +149,23 @@ def test_switch_campaign_to_non_existant_campaign(test_metadata, database_client
         actual["text"]
         == "Error finding campaign: `Not a real campaign`, make sure case is correct."
     )
+
+
+def test_compute_new_value_raises_with_wrong_sign():
+    with pytest.raises(ValueError):
+        _compute_new_value(100, 100, "/")
+
+
+def test_compute_new_value_with_add():
+    actual = _compute_new_value(100, 100, "+")
+    assert actual == 200
+
+
+def test_compute_new_value_with_subtract():
+    actual = _compute_new_value(100, 100, "-")
+    assert actual == 0
+
+
+def test_add_and_remove_handler_raises_with_wrong_operator():
+    with pytest.raises(ValueError):
+        _add_and_remove_handler(Aspect("bar", "", ""), 100, "foo")
