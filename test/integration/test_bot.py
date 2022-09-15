@@ -123,6 +123,23 @@ class TestBot:
 
         assert response["text"] == expected_response
 
+    @pytest.mark.parametrize(
+        "input_text",
+        [
+            "add 30 chickens",
+            "add 10 to gold",
+            "add 10 to xp_target",
+        ],
+    )
+    def test_reject_unallowed_user(self, input_text):
+        response = symone_message(
+            input_text,
+            "foobar",
+            HandlerSource.ASPECT_QUERY,
+        )
+
+        assert response["text"] == "Nice try..."
+
     def test_help_interaction(self):
         response = symone_message("What can you do Symone?", "1234", HandlerSource.HELP)
         assert "help" in response["text"]

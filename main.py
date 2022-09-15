@@ -1,6 +1,5 @@
 import logging
 import os
-import random
 import re
 import sys
 
@@ -8,7 +7,7 @@ from slack_bolt import App
 from slack_bolt.adapter.google_cloud_functions import SlackRequestHandler
 from werkzeug import Request
 
-from symone_bot.util import mocking_spongebob_reply
+from symone_bot.util import get_mocking_reply
 from symone_bot.bot_ingress import symone_message
 from symone_bot.handler_source import HandlerSource
 
@@ -62,10 +61,7 @@ def message_help(message, say):
 )
 def message_did_they_level_up(message, say):
     """Responds to a user asking if they leveled up."""
-    if bool(random.getrandbits(1)):
-        reply = mocking_spongebob_reply(message)
-    else:
-        reply = "No :arms_crossed:"
+    reply = get_mocking_reply(message)
     say(reply)
 
 

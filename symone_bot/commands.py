@@ -32,7 +32,7 @@ def game_master_only(f: Callable) -> Callable:
         database_client = DatabaseClient.get_client()
         if metadata.user_id != database_client.get_game_master():
             logging.warning(
-                f"Unauthorized user attempted to execute add command on {aspect.name} Aspect."
+                f"Unauthorized user attempted to execute add command on {aspect.name if aspect else 'unknown'} Aspect."
             )
             return {
                 "response_type": MESSAGE_RESPONSE_CHANNEL,
