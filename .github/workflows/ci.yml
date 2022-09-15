@@ -53,13 +53,23 @@ jobs:
       - run: |
           pytest . --cov=. --cov-report xml
           coverage report --fail-under=90
+      - uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: coverage.xml
+
   sonarcloud:
     name: SonarCloud
+    needs: tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - uses: actions/download-artifact@v3
+        with:
+          name: coverage-report
+
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:
